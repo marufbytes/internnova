@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, GraduationCap, Users, Building2, ShieldCheck, CheckCircle2, ArrowRight, MapPin, Menu, X, Sparkles, ArrowUpRight, Globe, Share2, MessageCircle} from 'lucide-react';
+import { Search, GraduationCap, Users, Building2, ShieldCheck, CheckCircle2, ArrowRight, MapPin, Menu, X, Sparkles, ArrowUpRight, Globe, Share2, MessageCircle } from 'lucide-react';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,13 +97,13 @@ export default function Home() {
               <Search className="w-5 h-5" />
             </button>
             <a
-              href="/auth/login"
+              href="/dashboard"
               className="px-5 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
             >
               Login
             </a>
             <a
-              href="/auth/register"
+              href="/dashboard"
               className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-600/20 transition-all hover:shadow-lg"
             >
               Register
@@ -128,8 +128,8 @@ export default function Home() {
             <a href="#" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">Alumni Referrals</a>
             <a href="#" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">Companies</a>
             <div className="pt-2 flex flex-col gap-2">
-              <a href="/auth/login" className="w-full text-center py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-xl">Login</a>
-              <a href="/auth/register" className="w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl">Register</a>
+              <a href="/dashboard" className="w-full text-center py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-xl">Login</a>
+              <a href="/dashboard" className="w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl">Register</a>
             </div>
           </div>
         )}
@@ -458,7 +458,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
             <a
-              href="/auth/register"
+              href="/dashboard"
               className="bg-white text-slate-900 hover:bg-slate-100 font-semibold text-xs px-6 py-3 rounded-xl text-center transition-colors shadow-md"
             >
               Get Started
