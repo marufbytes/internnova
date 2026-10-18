@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Search, 
-  FileText, 
-  Calendar, 
-  Bookmark, 
-  User, 
+import {
+  LayoutDashboard,
+  Search,
+  FileText,
+  Calendar,
+  Bookmark,
+  User,
   LogOut
 } from 'lucide-react';
 
@@ -22,23 +22,32 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
   const [studentName, setStudentName] = useState('Abrar Shahriar');
 
   useEffect(() => {
-    const token = document.cookie
-      .split(';')
-      .find((c) => c.trim().startsWith('access_token='))
-      ?.split('=')[1];
-
-    if (token) {
-      fetch('http://localhost:3000/auth/profile', {
-        headers: { Authorization: `Bearer ${token}` },
+    // Sothik /users/me endpoint theke HTTP-only cookie-r maddhome data fetch kora
+    fetch('http://localhost:3000/users/me', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // NestJS HTTP-only cookie pathanor jonno khuboi zori
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch sidebar profile');
+        return res.json();
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.name) {
-            setStudentName(data.name);
+      .then((data) => {
+        if (data) {
+          let fullName = '';
+          if (data.firstName || data.lastName) {
+            fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+          } else if (data.name) {
+            fullName = data.name;
           }
-        })
-        .catch(() => {});
-    }
+          if (fullName) {
+            setStudentName(fullName);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Sidebar profile fetch error:', err);
+      });
   }, []);
 
   const navItems = [
@@ -53,19 +62,25 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  const handleLogout = () => {
-    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:3000/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+    window.location.href = '/auth/login';
   };
 
   return (
-    <aside 
-      className={`bg-white border-r border-slate-200 py-6 px-3 flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}
+    <aside
+      className={`bg-white border-r border-slate-200 py-6 px-3 flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'
+        }`}
     >
       <div className="overflow-y-auto overflow-x-hidden">
-        
+
         {/* WORKSPACE Section */}
         <div className="mb-6">
           {!isCollapsed && (
@@ -83,11 +98,10 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
                   key={item.href}
                   href={item.href}
                   title={isCollapsed ? item.name : undefined}
-                  className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-slate-100 text-slate-900 font-bold' 
+                  className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${isActive
+                      ? 'bg-slate-100 text-slate-900 font-bold'
                       : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="w-4 h-4 shrink-0" />
@@ -121,11 +135,10 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
                   key={item.href}
                   href={item.href}
                   title={isCollapsed ? item.name : undefined}
-                  className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-slate-100 text-slate-900 font-bold' 
+                  className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${isActive
+                      ? 'bg-slate-100 text-slate-900 font-bold'
                       : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
@@ -137,12 +150,11 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
       </div>
 
       {/* Logout Button */}
-      <button 
+      <button
         onClick={handleLogout}
         title={isCollapsed ? "Log out" : undefined}
-        className={`w-full bg-rose-50/80 hover:bg-rose-100/80 text-rose-600 border border-rose-100 p-2.5 rounded-2xl flex items-center ${
-          isCollapsed ? 'justify-center' : 'justify-between'
-        } transition-colors mt-4 shrink-0 group`}
+        className={`w-full bg-rose-50/80 hover:bg-rose-100/80 text-rose-600 border border-rose-100 p-2.5 rounded-2xl flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'
+          } transition-colors mt-4 shrink-0 group cursor-pointer`}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="w-9 h-9 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0 group-hover:bg-rose-200/80 transition-colors">

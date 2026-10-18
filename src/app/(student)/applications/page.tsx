@@ -12,29 +12,32 @@ export default function ApplicationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Fetch Real Data from Backend
+  // Fetch Real Data from Backend using HTTP-only Cookie
   useEffect(() => {
-    const token = document.cookie
-      .split(';')
-      .find((c) => c.trim().startsWith('access_token='))
-      ?.split('=')[1];
-
     fetch('http://localhost:3000/application/my', {
-      headers: { Authorization: `Bearer ${token}` },
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // HTTP-only cookie backend-e pathanor jonno
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch applications');
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setApplications(data);
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Applications fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
-  // Status Styling Helper
+  // Status Styling Helper (Fixed with .toUpperCase() for lowercase database statuses)
   const getStatusStyle = (status: string) => {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case 'PENDING':
         return 'bg-amber-50/80 text-amber-600 border-amber-100';
       case 'REVIEWED':
@@ -50,7 +53,7 @@ export default function ApplicationsPage() {
     }
   };
 
-  // Filter logic
+  // Filter logic (Fixed with .toUpperCase())
   const filteredApps = applications.filter((app) => {
     const matchesSearch =
       app.internship?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,7 +61,7 @@ export default function ApplicationsPage() {
 
     const matchesStatus =
       selectedStatus === 'All statuses' ||
-      app.status.toLowerCase() === selectedStatus.toLowerCase();
+      app.status?.toUpperCase() === selectedStatus.toUpperCase();
 
     return matchesSearch && matchesStatus;
   });
@@ -179,7 +182,7 @@ export default function ApplicationsPage() {
 
                     {/* Status Badge */}
                     <td className="py-4 px-6">
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold border ${getStatusStyle(app.status)}`}>
+                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold border uppercase ${getStatusStyle(app.status)}`}>
                         {app.status}
                       </span>
                     </td>

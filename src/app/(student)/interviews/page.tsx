@@ -20,35 +20,38 @@ export default function InterviewsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Completed' | 'Cancelled' | 'All'>('Upcoming');
 
-  // Fetch Real Student Interviews from Backend
+  // Fetch Real Student Interviews from Backend using HTTP-only cookie
   useEffect(() => {
-    const token = document.cookie
-      .split(';')
-      .find((c) => c.trim().startsWith('access_token='))
-      ?.split('=')[1];
-
     fetch('http://localhost:3000/interviews/student/my', {
-      headers: { Authorization: `Bearer ${token}` },
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // HTTP-only cookie backend-e pathanor jonno
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch interviews');
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setInterviews(data);
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Interviews fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
-  // Counters (Mapping backend statuses: SCHEDULED, COMPLETED, CANCELLED)
-  const upcomingCount = interviews.filter((i) => i.status === 'SCHEDULED' || i.status === 'Scheduled').length;
-  const completedCount = interviews.filter((i) => i.status === 'COMPLETED' || i.status === 'Completed').length;
-  const cancelledCount = interviews.filter((i) => i.status === 'CANCELLED' || i.status === 'Cancelled').length;
+  // Counters (Mapping backend statuses case-insensitively)
+  const upcomingCount = interviews.filter((i) => i.status?.toUpperCase() === 'SCHEDULED' || i.status?.toUpperCase() === 'UPCOMING').length;
+  const completedCount = interviews.filter((i) => i.status?.toUpperCase() === 'COMPLETED').length;
+  const cancelledCount = interviews.filter((i) => i.status?.toUpperCase() === 'CANCELLED').length;
 
   // Tab Filter Logic
   const filteredInterviews = interviews.filter((item) => {
     const status = item.status?.toUpperCase();
-    if (activeTab === 'Upcoming') return status === 'SCHEDULED';
+    if (activeTab === 'Upcoming') return status === 'SCHEDULED' || status === 'UPCOMING';
     if (activeTab === 'Completed') return status === 'COMPLETED';
     if (activeTab === 'Cancelled') return status === 'CANCELLED';
     return true;
@@ -166,7 +169,7 @@ export default function InterviewsPage() {
                 {/* Right Column: Status & Action Buttons */}
                 <div className="flex flex-wrap sm:flex-col items-start sm:items-end justify-between gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
                   {/* Status Badge */}
-                  {status === 'SCHEDULED' && (
+                  {(status === 'SCHEDULED' || status === 'UPCOMING') && (
                     <span className="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[11px] font-semibold">
                       Scheduled
                     </span>
@@ -184,7 +187,7 @@ export default function InterviewsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    {status === 'SCHEDULED' && item.meetingLink && (
+                    {(status === 'SCHEDULED' || status === 'UPCOMING') && item.meetingLink && (
                       <a
                         href={item.meetingLink}
                         target="_blank"

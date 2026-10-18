@@ -16,32 +16,34 @@ export default function DashboardPage() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Real Student Applications from Backend
   useEffect(() => {
-    const token = document.cookie
-      .split(';')
-      .find((c) => c.trim().startsWith('access_token='))
-      ?.split('=')[1];
-
     fetch('http://localhost:3000/application/my', {
-      headers: { Authorization: `Bearer ${token}` },
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', 
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch applications');
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setApplications(data);
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Dashboard applications fetch error:', err);
+        setLoading(false);
+      });
   }, []);
 
-  // Summary Card Calculation Logic
+  // Summary Card Calculation Logic (Fixed with .toUpperCase() to handle lowercase DB statuses)
   const totalApps = applications.length;
-  const pendingCount = applications.filter((a) => a.status === 'PENDING').length;
-  const interviewApps = applications.filter((a) => a.status === 'INTERVIEW');
+  const pendingCount = applications.filter((a) => a.status?.toUpperCase() === 'PENDING').length;
+  const interviewApps = applications.filter((a) => a.status?.toUpperCase() === 'INTERVIEW');
   const upcomingInterviewsCount = interviewApps.length;
-  const acceptedCount = applications.filter((a) => a.status === 'ACCEPTED').length;
+  const acceptedCount = applications.filter((a) => a.status?.toUpperCase() === 'ACCEPTED').length;
 
   // Latest 4 Applications for Table
   const recentApplications = applications.slice(0, 4);
@@ -50,9 +52,9 @@ export default function DashboardPage() {
   const upcomingInterviewApp = interviewApps[0];
   const interviewDetails = upcomingInterviewApp?.interviews?.[0];
 
-  // Status Styling Helper
+  // Status Styling Helper (Fixed with .toUpperCase())
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case 'PENDING':
         return 'bg-amber-50 text-amber-700 border border-amber-100';
       case 'REVIEWED':

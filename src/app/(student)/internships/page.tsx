@@ -26,64 +26,87 @@ export default function BrowseInternshipsPage() {
 
   const [selectedInternship, setSelectedInternship] = useState<any>(null);
   
-  // Track Applied Internships (Can also be fetched from backend applications/my)
+  // Track Applied Internships from backend applications
   const [appliedInternshipIds, setAppliedInternshipIds] = useState<number[]>([]); 
 
-  // 1. Fetch Real Internships from Backend
+  // 1. Fetch Real Internships and Applications using HTTP-Only Cookies
   useEffect(() => {
-    const token = document.cookie
-      .split(';')
-      .find((c) => c.trim().startsWith('access_token='))
-      ?.split('=')[1];
-
-    // Fetch Internships
-    fetch('http://localhost:3000/internship')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setInternships(data);
+    const fetchData = async () => {
+      try {
+        // Fetch Internships List
+        const internshipsRes = await fetch('http://localhost:3000/internship', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+        
+        if (internshipsRes.ok) {
+          const internshipsData = await internshipsRes.json();
+          if (Array.isArray(internshipsData)) {
+            setInternships(internshipsData);
+          }
         }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
 
-    // Optional: Fetch user's existing applications to mark "Applied" badges accurately
-    if (token) {
-      fetch('http://localhost:3000/application/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            const appliedIds = data.map((app) => app.internship?.id).filter(Boolean);
+        // Fetch user's existing applications to mark "Applied" badges accurately
+        const applicationsRes = await fetch('http://localhost:3000/application/my', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+
+        if (applicationsRes.ok) {
+          const applicationsData = await applicationsRes.json();
+          if (Array.isArray(applicationsData)) {
+            const appliedIds = applicationsData
+              .map((app: any) => app.internship?.id || app.internshipId)
+              .filter(Boolean);
             setAppliedInternshipIds(appliedIds);
           }
-        })
-        .catch(() => {});
-    }
+        }
+      } catch (err) {
+        console.error('Failed to load internships or user applications:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleApplySuccess = (appliedId: number) => {
     setAppliedInternshipIds((prev) => [...prev, appliedId]);
   };
 
-  // 2. Frontend Filtering & Sorting Logic based on backend data structure
-  const filteredInternships = internships.filter((item) => {
-    const matchesSearch = 
-      item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.company?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.skills?.some((s: string) => s.toLowerCase().includes(searchTerm.toLowerCase()));
+  // 2. Real Backend Data Filtering & Sorting
+  const filteredInternships = internships
+    .filter((item) => {
+      const matchesSearch = 
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.company?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (Array.isArray(item.skills) && item.skills.some((s: string) => s.toLowerCase().includes(searchTerm.toLowerCase())));
 
-    const matchesLocation = 
-      selectedLocation === 'All locations' || 
-      item.location?.toLowerCase().includes(selectedLocation.toLowerCase());
+      const matchesLocation = 
+        selectedLocation === 'All locations' || 
+        item.location?.toLowerCase().includes(selectedLocation.toLowerCase());
 
-    const matchesType = 
-      selectedType === 'All types' || 
-      item.type?.toLowerCase().includes(selectedType.toLowerCase());
+      const matchesType = 
+        selectedType === 'All types' || 
+        item.type?.toLowerCase().includes(selectedType.toLowerCase());
 
-    return matchesSearch && matchesLocation && matchesType;
-  });
+      return matchesSearch && matchesLocation && matchesType;
+    })
+    .sort((a, b) => {
+      if (selectedSort === 'Newest first') {
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      }
+      if (selectedSort === 'Oldest first') {
+        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      }
+      if (selectedSort === 'Deadline soon') {
+        return new Date(a.deadline || 0).getTime() - new Date(b.deadline || 0).getTime();
+      }
+      return 0;
+    });
 
   if (loading) {
     return (
@@ -168,7 +191,7 @@ export default function BrowseInternshipsPage() {
         <p>Updated live</p>
       </div>
 
-      {/* Internship Cards with Hover Effects */}
+      {/* Internship Cards */}
       <div className="space-y-4">
         {filteredInternships.length > 0 ? (
           filteredInternships.map((item) => {
@@ -210,20 +233,23 @@ export default function BrowseInternshipsPage() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{item.applicantsCount || 'Open applicants'}</span>
+                        <span>{item.applications?.length || item.applicantsCount || 0} Applicants</span>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      {item.skills?.map((skill: string, index: number) => (
-                        <span
-                          key={index}
-                          className="bg-slate-50 text-slate-600 border border-slate-200/60 px-2.5 py-1 rounded-lg text-[11px] font-medium"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    {/* Skill Tags */}
+                    {Array.isArray(item.skills) && item.skills.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {item.skills.map((skill: string, index: number) => (
+                          <span
+                            key={index}
+                            className="bg-slate-50 text-slate-600 border border-slate-200/60 px-2.5 py-1 rounded-lg text-[11px] font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

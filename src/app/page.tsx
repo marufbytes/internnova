@@ -1,110 +1,131 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, GraduationCap, Users, Building2, ShieldCheck, CheckCircle2, ArrowRight, MapPin, Menu, X, Sparkles, ArrowUpRight, Globe, Share2, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { 
+  Search, 
+  GraduationCap, 
+  Users, 
+  Building2, 
+  ShieldCheck, 
+  CheckCircle2, 
+  ArrowRight, 
+  MapPin, 
+  Menu, 
+  X, 
+  Sparkles, 
+  ArrowUpRight, 
+  Globe, 
+  Share2, 
+  MessageCircle, 
+  Loader2 
+} from 'lucide-react';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Backend Dynamic Data State
+  const [featuredOpportunities, setFeaturedOpportunities] = useState<any[]>([]);
+  const [companiesList, setCompaniesList] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data for featured opportunities
-  const featuredOpportunities = [
-    {
-      id: 1,
-      title: 'Software Engineering Intern',
-      company: 'Google',
-      location: 'Bengaluru, India',
-      workType: 'Remote',
-      jobType: 'Full-time',
-      payType: 'Paid',
-      logoBg: 'bg-red-50 text-red-600 border-red-100',
-      logoInitial: 'G',
-    },
-    {
-      id: 2,
-      title: 'Product Design Intern',
-      company: 'Microsoft',
-      location: 'Hyderabad, India',
-      workType: 'Hybrid',
-      jobType: 'Full-time',
-      payType: 'Paid',
-      logoBg: 'bg-blue-50 text-blue-600 border-blue-100',
-      logoInitial: 'M',
-    },
-    {
-      id: 3,
-      title: 'Data Science Intern',
-      company: 'Amazon',
-      location: 'Bengaluru, India',
-      workType: 'On-site',
-      jobType: 'Full-time',
-      payType: 'Paid',
-      logoBg: 'bg-amber-50 text-amber-600 border-amber-100',
-      logoInitial: 'A',
-    },
-  ];
+  const router = useRouter();
 
-  // Company marquee list
-  const companyLogos = [
-    'Google',
-    'Microsoft',
-    'Amazon',
-    'TCS',
-    'Deloitte',
-    'IBM',
-    'Infosys',
-    'Accenture',
-  ];
+  // Fetch Internships & Companies from Backend API
+  useEffect(() => {
+    fetch('http://localhost:3000/internship')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch internships');
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const activeInternships = data.filter((item) => item.isActive !== false);
+          setFeaturedOpportunities(activeInternships.slice(0, 3));
+
+          const uniqueCompanies = Array.from(
+            new Set(
+              data
+                .map((item) => item.company?.name)
+                .filter((name): name is string => Boolean(name))
+            )
+          );
+          setCompaniesList(uniqueCompanies);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('API Fetch Error:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/internships?query=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/internships');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
       
-      {/* 1. NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4">
+      {/* 1. VIBRANT NAVBAR */}
+      <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* Brand Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-md shadow-blue-500/20">
-              <GraduationCap className="w-6 h-6" />
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/')}>
+            <div className="p-1.5 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg shadow-indigo-500/20">
+              <Image 
+                src="/logo.png" 
+                alt="InternNova Logo" 
+                width={28} 
+                height={28} 
+                className="w-7 h-7 object-contain brightness-200"
+              />
             </div>
-            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-500 bg-clip-text text-transparent">
-              InternNova
-            </span>
+            <div className="flex flex-col leading-none">
+              <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-pink-200 bg-clip-text text-transparent">
+                InternNova
+              </span>
+              <span className="text-[10px] font-bold text-indigo-400 tracking-wider uppercase mt-0.5">
+                Connect
+              </span>
+            </div>
           </div>
 
           {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#" className="text-blue-600 border-b-2 border-blue-600 pb-1">
+          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-300">
+            <a href="#" className="text-indigo-400 font-bold border-b-2 border-indigo-500 pb-1">
               Home
             </a>
-            <a href="/about" className="hover:text-blue-600 transition-colors">
+            <a href="/about" className="hover:text-indigo-400 transition-colors">
               About
             </a>
-            <a href="#" className="hover:text-blue-600 transition-colors">
+            <a href="/internships" className="hover:text-indigo-400 transition-colors">
               Internships
             </a>
-            <a href="#" className="hover:text-blue-600 transition-colors">
+            <a href="/dashboard" className="hover:text-indigo-400 transition-colors">
               Alumni Referrals
-            </a>
-            <a href="#" className="hover:text-blue-600 transition-colors">
-              Companies
             </a>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons (Fixed to point to auth routes) */}
           <div className="hidden md:flex items-center gap-3">
-            <button aria-label="Search" className="p-2 text-slate-400 hover:text-slate-600 transition-colors mr-1">
-              <Search className="w-5 h-5" />
-            </button>
             <a
-              href="/dashboard"
-              className="px-5 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+              href="/auth/login"
+              className="px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-2xl transition-all border border-slate-700/60"
             >
               Login
             </a>
             <a
-              href="/dashboard"
-              className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-600/20 transition-all hover:shadow-lg"
+              href="/auth/register"
+              className="px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-90 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02]"
             >
               Register
             </a>
@@ -112,8 +133,9 @@ export default function Home() {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden text-slate-600 p-2"
+            className="md:hidden text-slate-300 p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle Menu"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -121,59 +143,65 @@ export default function Home() {
 
         {/* Mobile Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden pt-4 pb-3 border-t border-slate-100 mt-3 space-y-3">
-            <a href="#" className="block px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-semibold text-sm">Home</a>
-            <a href="/about" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">About</a>
-            <a href="#" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">Internships</a>
-            <a href="#" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">Alumni Referrals</a>
-            <a href="#" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">Companies</a>
+          <div className="md:hidden pt-4 pb-3 border-t border-slate-800/80 mt-3 space-y-3">
+            <a href="#" className="block px-3 py-2 rounded-xl bg-slate-800 text-indigo-400 font-bold text-xs">Home</a>
+            <a href="/about" className="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 text-xs font-medium">About</a>
+            <a href="/internships" className="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 text-xs font-medium">Internships</a>
+            <a href="/dashboard" className="block px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 text-xs font-medium">Alumni Referrals</a>
             <div className="pt-2 flex flex-col gap-2">
-              <a href="/dashboard" className="w-full text-center py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-xl">Login</a>
-              <a href="/dashboard" className="w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl">Register</a>
+              <a href="/auth/login" className="w-full text-center py-2.5 text-xs font-bold text-slate-300 border border-slate-700 rounded-2xl">Login</a>
+              <a href="/auth/register" className="w-full text-center py-2.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-pink-600 rounded-2xl">Register</a>
             </div>
           </div>
         )}
       </nav>
 
-      {/* 2. HERO SECTION */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-12 pb-20 grid lg:grid-cols-12 gap-12 items-center">
+      {/* 2. COLORFUL HERO SECTION */}
+      <section className="relative max-w-7xl mx-auto px-6 pt-16 pb-24 grid lg:grid-cols-12 gap-12 items-center overflow-hidden">
         
-        {/* Left Text Block */}
-        <div className="lg:col-span-6 space-y-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 text-blue-600 font-semibold text-xs rounded-full border border-blue-100">
-            <Sparkles className="w-3.5 h-3.5" /> Your Future, Our Mission
+        {/* Glow Background Elements */}
+        <div className="absolute top-10 left-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Left Hero Text Block */}
+        <div className="lg:col-span-6 space-y-6 relative z-10">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 text-indigo-300 font-bold text-xs rounded-full border border-indigo-800/50 shadow-inner">
+            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" /> Launch Your Career Today
           </span>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15]">
-            Discover Internships, <br />
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.15] tracking-tight">
+            Discover Opportunities, <br />
             Connect with Alumni, <br />
-            Build Your <span className="text-blue-600">Future</span>
+            Build Your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Future</span>
           </h1>
 
-          <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-xl">
-            InternNova is a university-powered platform that connects students, alumni, and companies to create opportunities, mentorships, and a stronger career network.
+          <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-xl font-medium">
+            InternNova is an advanced university placement network. Search verified internships, connect with alumni for referrals, and land your dream job with top employers.
           </p>
 
-          {/* Search Box */}
-          <div className="bg-white p-2 rounded-2xl shadow-lg border border-slate-100 flex items-center gap-2 max-w-lg">
-            <Search className="w-5 h-5 text-slate-400 ml-3 shrink-0" />
+          {/* Dynamic Search Box */}
+          <form onSubmit={handleSearchSubmit} className="bg-slate-800/90 p-2 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-2 max-w-lg backdrop-blur-md">
+            <Search className="w-4 h-4 text-indigo-400 ml-3 shrink-0" />
             <input
               type="text"
-              placeholder="Search internships, companies, or skills..."
-              className="w-full text-sm focus:outline-none bg-transparent text-slate-800 placeholder:text-slate-400"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by position, company, or skills..."
+              className="w-full text-xs focus:outline-none bg-transparent text-white placeholder:text-slate-500 font-medium"
             />
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors shrink-0 shadow-md shadow-blue-500/20">
+            <button type="submit" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 shrink-0">
               Search
             </button>
-          </div>
+          </form>
 
-          {/* Popular Search Tags */}
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-1">
-            <span className="font-semibold text-slate-700">Popular:</span>
-            {['Software Engineering', 'Data Science', 'Product Management', 'Marketing'].map((tag) => (
+          {/* Popular Tag Badges */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 pt-1">
+            <span className="font-bold text-slate-300">Popular:</span>
+            {['Software Engineer', 'React / Next.js', 'NestJS', 'UI/UX'].map((tag) => (
               <span
                 key={tag}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1 rounded-md cursor-pointer transition-colors"
+                onClick={() => router.push(`/internships?query=${encodeURIComponent(tag)}`)}
+                className="bg-slate-800/60 hover:bg-slate-800 text-indigo-300 border border-indigo-500/20 px-3 py-1 rounded-xl cursor-pointer transition-colors text-[11px] font-semibold"
               >
                 {tag}
               </span>
@@ -182,290 +210,238 @@ export default function Home() {
         </div>
 
         {/* Right Feature Graphic Cards */}
-        <div className="lg:col-span-6 relative">
-          <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-blue-100 to-indigo-100 p-4">
+        <div className="lg:col-span-6 relative z-10">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-700/60 bg-gradient-to-b from-slate-800 to-slate-900 p-3">
             <img
               src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1000"
               alt="Students collaborating"
-              className="rounded-2xl object-cover w-full h-[380px] sm:h-[440px]"
+              className="rounded-2xl object-cover w-full h-[380px] sm:h-[440px] opacity-80"
             />
           </div>
 
-          {/* Floating Card - Students */}
-          <div className="absolute top-6 -left-4 sm:-left-6 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 max-w-[220px]">
-            <div className="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl shrink-0">
+          {/* Floating Glassmorphism Cards */}
+          <div className="absolute top-6 -left-4 sm:-left-6 z-20 bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-indigo-500/30 flex items-center gap-3 max-w-[230px]">
+            <div className="bg-gradient-to-tr from-indigo-500 to-purple-500 text-white p-2.5 rounded-xl shrink-0 shadow-md">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-bold text-xs text-slate-900">For Students</p>
-              <p className="text-[11px] text-slate-500 leading-tight">Find internships & start your career</p>
+              <p className="font-bold text-xs text-white">For Students</p>
+              <p className="text-[10px] text-slate-400 font-medium">Apply & track applications</p>
             </div>
           </div>
 
-          {/* Floating Card - Alumni */}
-          <div className="absolute top-12 -right-2 sm:-right-4 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 max-w-[230px]">
-            <div className="bg-purple-100 text-purple-600 p-2.5 rounded-xl shrink-0">
+          <div className="absolute top-12 -right-2 sm:-right-4 z-20 bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-purple-500/30 flex items-center gap-3 max-w-[240px]">
+            <div className="bg-gradient-to-tr from-purple-500 to-pink-500 text-white p-2.5 rounded-xl shrink-0 shadow-md">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-bold text-xs text-slate-900">For Alumni</p>
-              <p className="text-[11px] text-slate-500 leading-tight">Share referrals & mentor future talent</p>
+              <p className="font-bold text-xs text-white">For Alumni</p>
+              <p className="text-[10px] text-slate-400 font-medium">Provide verified referrals</p>
             </div>
           </div>
 
-          {/* Floating Card - Companies */}
-          <div className="absolute -bottom-6 right-6 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 max-w-[220px]">
-            <div className="bg-blue-100 text-blue-600 p-2.5 rounded-xl shrink-0">
+          <div className="absolute -bottom-6 right-6 z-20 bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-emerald-500/30 flex items-center gap-3 max-w-[230px]">
+            <div className="bg-gradient-to-tr from-emerald-500 to-teal-500 text-white p-2.5 rounded-xl shrink-0 shadow-md">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-bold text-xs text-slate-900">For Companies</p>
-              <p className="text-[11px] text-slate-500 leading-tight">Hire top talent & build your team</p>
+              <p className="font-bold text-xs text-white">For Companies</p>
+              <p className="text-[10px] text-slate-400 font-medium">Post jobs & hire top talent</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. LOGO TRUST BAR */}
-      <section className="bg-white py-12 border-y border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-6">
-          <p className="text-sm font-bold tracking-wider text-slate-800 uppercase">
-            Trusted by Leading Companies
+      {/* 3. DYNAMIC TRUST BAR */}
+      <section className="bg-slate-950/80 py-10 border-y border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
+          <p className="text-xs font-extrabold tracking-widest text-indigo-400 uppercase">
+            Trusted by Top Industry Employers & Partners
           </p>
-          <p className="text-xs text-slate-500 -mt-4">
-            Top companies trust InternNova to find and hire the best talent.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 pt-2 opacity-70 grayscale hover:grayscale-0 transition-all">
-            {companyLogos.map((logo) => (
-              <span key={logo} className="text-xl sm:text-2xl font-black tracking-tight text-slate-700">
-                {logo}
-              </span>
-            ))}
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 pt-2">
+            {companiesList.length > 0 ? (
+              companiesList.map((companyName, idx) => (
+                <span key={idx} className="text-lg sm:text-xl font-black tracking-tight text-slate-300 hover:text-white transition-colors cursor-pointer">
+                  {companyName}
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-slate-500 font-medium">Loading partner network...</span>
+            )}
           </div>
         </div>
       </section>
 
-      {/* 4. HOW IT WORKS */}
+      {/* 4. COLORFUL ROLE CARDS */}
       <section className="py-20 max-w-7xl mx-auto px-6">
         <div className="text-center space-y-2 mb-16">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-            How It Works
+          <span className="text-xs font-bold uppercase tracking-widest text-pink-400">
+            Tailored Experience
           </span>
-          <h2 className="text-3xl font-extrabold text-slate-900">
-            Get Started in 4 Simple Steps
+          <h2 className="text-3xl font-black text-white tracking-tight">
+            Designed for Everyone
           </h2>
-          <p className="text-slate-500 text-sm max-w-lg mx-auto">
-            Whether you are a student, alumni, or company, InternNova makes it easy to find opportunities and build connections.
+          <p className="text-slate-400 text-xs max-w-lg mx-auto font-medium">
+            Dedicated portals and tools for students, university alumni, company recruiters, and system managers.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-8 relative">
-          {[
-            {
-              step: '1',
-              title: 'Create Your Profile',
-              desc: 'Sign up and tell us about your goals, skills, and interests.',
-              icon: Users,
-              iconColor: 'bg-purple-100 text-purple-600',
-            },
-            {
-              step: '2',
-              title: 'Explore Opportunities',
-              desc: 'Browse internships, referral posts, and top companies.',
-              icon: Search,
-              iconColor: 'bg-blue-100 text-blue-600',
-            },
-            {
-              step: '3',
-              title: 'Apply or Refer',
-              desc: 'Apply directly or get referred by university alumni.',
-              icon: GraduationCap,
-              iconColor: 'bg-emerald-100 text-emerald-600',
-            },
-            {
-              step: '4',
-              title: 'Grow Your Career',
-              desc: 'Get hired, gain experience, and build your professional network.',
-              icon: Sparkles,
-              iconColor: 'bg-amber-100 text-amber-600',
-            },
-          ].map((item, index) => (
-            <div key={index} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative text-center space-y-3">
-              <div className={`w-12 h-12 ${item.iconColor} rounded-2xl flex items-center justify-center mx-auto`}>
-                <item.icon className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-base">{item.step}. {item.title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Student */}
+          <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 p-6 rounded-3xl border border-indigo-500/20 shadow-xl space-y-4 hover:border-indigo-500/50 transition-all">
+            <div className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 w-12 h-12 rounded-2xl flex items-center justify-center">
+              <GraduationCap className="w-6 h-6" />
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. DESIGNED FOR EVERYONE (ROLES) */}
-      <section className="bg-blue-50/50 py-20 border-y border-blue-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center space-y-2 mb-16">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-              Why InternNova
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900">
-              Designed for Everyone
-            </h2>
-            <p className="text-slate-500 text-sm max-w-lg mx-auto">
-              We bring together students, alumni, and companies on one platform to create more opportunities and stronger careers.
-            </p>
+            <h3 className="font-bold text-white text-lg">For Students</h3>
+            <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" /> Browse active internships</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" /> Manage multiple resumes</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" /> Real-time application tracking</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" /> Alumni referral requests</li>
+            </ul>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Student Card */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-              <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-lg">For Students</h3>
-              <ul className="space-y-2.5 text-xs text-slate-600">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Find relevant internships</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Upload and manage resumes</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Track applications & interviews</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Connect directly with alumni</li>
-              </ul>
+          {/* Alumni */}
+          <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 p-6 rounded-3xl border border-purple-500/20 shadow-xl space-y-4 hover:border-purple-500/50 transition-all">
+            <div className="bg-purple-500/10 text-purple-400 border border-purple-500/30 w-12 h-12 rounded-2xl flex items-center justify-center">
+              <Users className="w-6 h-6" />
             </div>
+            <h3 className="font-bold text-white text-lg">For Alumni</h3>
+            <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Google OAuth login check</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Post referral opportunities</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Verify student profiles</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" /> Network with university peers</li>
+            </ul>
+          </div>
 
-            {/* Alumni Card */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-              <div className="bg-purple-100 text-purple-600 w-10 h-10 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-lg">For Alumni</h3>
-              <ul className="space-y-2.5 text-xs text-slate-600">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Post referral opportunities</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Mentor current students</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Expand your network</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Give back to your university</li>
-              </ul>
+          {/* Companies */}
+          <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 p-6 rounded-3xl border border-emerald-500/20 shadow-xl space-y-4 hover:border-emerald-500/50 transition-all">
+            <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 w-12 h-12 rounded-2xl flex items-center justify-center">
+              <Building2 className="w-6 h-6" />
             </div>
+            <h3 className="font-bold text-white text-lg">For Companies</h3>
+            <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Post internship positions</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Review applicant CVs</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Referral vs Direct filtering</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Hire qualified candidates</li>
+            </ul>
+          </div>
 
-            {/* HR / Company Card */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-              <div className="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-lg">For Companies</h3>
-              <ul className="space-y-2.5 text-xs text-slate-600">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Post internships & jobs</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Review qualified candidates</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Schedule interview meetings</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Build your talent pipeline</li>
-              </ul>
+          {/* Admin */}
+          <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 p-6 rounded-3xl border border-amber-500/20 shadow-xl space-y-4 hover:border-amber-500/50 transition-all">
+            <div className="bg-amber-500/10 text-amber-400 border border-amber-500/30 w-12 h-12 rounded-2xl flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-
-            {/* Admin Card */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-              <div className="bg-amber-100 text-amber-600 w-10 h-10 rounded-xl flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-lg">For Admins</h3>
-              <ul className="space-y-2.5 text-xs text-slate-600">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Manage users & roles</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Verify company profiles</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Global platform monitoring</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Ensure secure operations</li>
-              </ul>
-            </div>
+            <h3 className="font-bold text-white text-lg">For Admins</h3>
+            <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> Role & permission control</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> Verify employer accounts</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> Security & data auditing</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> Analytics & monitoring</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* 6. FEATURED INTERNSHIPS */}
+      {/* 5. DYNAMIC FEATURED OPPORTUNITIES FROM BACKEND */}
       <section className="py-20 max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div className="space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-              Featured Opportunities
+            <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
+              Live Feed
             </span>
-            <h2 className="text-3xl font-extrabold text-slate-900">
-              Top Opportunities This Week
+            <h2 className="text-3xl font-black text-white tracking-tight">
+              Featured Opportunities This Week
             </h2>
-            <p className="text-slate-500 text-sm">
-              Explore recent internship listings posted directly by companies and verified alumni.
+            <p className="text-slate-400 text-xs font-medium">
+              Real-time internship listings synced directly from company partners.
             </p>
           </div>
           <a
-            href="#"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-md shadow-blue-500/20 shrink-0"
+            href="/internships"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white px-5 py-2.5 rounded-2xl font-bold text-xs transition-all shadow-lg shadow-indigo-500/20 shrink-0"
           >
             View All Internships <ArrowRight className="w-4 h-4" />
           </a>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {featuredOpportunities.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg border ${item.logoBg}`}>
-                    {item.logoInitial}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {featuredOpportunities.map((item) => (
+              <div
+                key={item.id}
+                className="bg-slate-800/80 p-6 rounded-3xl border border-slate-700/80 shadow-xl hover:border-indigo-500/50 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                      {item.company?.name?.charAt(0) || 'C'}
+                    </div>
+                    <span className="text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold px-3 py-1 rounded-xl">
+                      {item.isActive !== false ? 'Active Position' : 'Closed'}
+                    </span>
                   </div>
-                  <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-md">
-                    {item.workType}
-                  </span>
+
+                  <div>
+                    <h3 className="font-bold text-white text-base line-clamp-1">{item.title}</h3>
+                    <p className="text-xs font-bold text-indigo-400 mt-0.5">{item.company?.name || 'Company Name'}</p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-indigo-400" /> {item.location || 'Dhaka, Bangladesh'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                    {item.description || 'No detailed description available for this position.'}
+                  </p>
                 </div>
 
-                <div>
-                  <h3 className="font-bold text-slate-900 text-base">{item.title}</h3>
-                  <p className="text-xs font-semibold text-slate-500">{item.company}</p>
-                </div>
-
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {item.location}</span>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="bg-blue-50 text-blue-600 text-[11px] font-semibold px-2 py-0.5 rounded">
-                    {item.jobType}
-                  </span>
-                  <span className="bg-emerald-50 text-emerald-600 text-[11px] font-semibold px-2 py-0.5 rounded">
-                    {item.payType}
-                  </span>
-                </div>
+                <a
+                  href={`/internships/${item.id}`}
+                  className="w-full mt-6 bg-slate-900 hover:bg-slate-950 text-white border border-slate-700 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  View Details <ArrowUpRight className="w-3.5 h-3.5 text-indigo-400" />
+                </a>
               </div>
-
-              <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1">
-                Apply Now <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* 7. CTA BANNER */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 sm:p-12 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-2 max-w-xl text-center md:text-left">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
+      {/* 6. VIBRANT CTA BANNER */}
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white p-8 sm:p-12 rounded-3xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 border border-indigo-500/30 relative overflow-hidden">
+          
+          <div className="space-y-2 max-w-xl text-center md:text-left relative z-10">
+            <span className="text-xs font-black uppercase tracking-widest text-indigo-300">
               Join InternNova
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Your Next Opportunity is Just a Click Away
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm">
-              Sign up today and be part of a growing community of students, alumni, and companies working together for a better tomorrow.
+            <p className="text-slate-300 text-xs sm:text-sm font-medium">
+              Create your account today and unlock a network of student opportunities, verified alumni referrals, and top employers.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0 relative z-10">
             <a
-              href="/dashboard"
-              className="bg-white text-slate-900 hover:bg-slate-100 font-semibold text-xs px-6 py-3 rounded-xl text-center transition-colors shadow-md"
+              href="/auth/register"
+              className="bg-white text-slate-950 hover:bg-slate-100 font-extrabold text-xs px-6 py-3.5 rounded-2xl text-center transition-all shadow-lg hover:scale-105"
             >
-              Get Started
+              Get Started Now
             </a>
             <a
               href="/about"
-              className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-6 py-3 rounded-xl border border-slate-700 text-center transition-colors"
+              className="bg-slate-900/80 hover:bg-slate-900 text-white font-bold text-xs px-6 py-3.5 rounded-2xl border border-slate-700 text-center transition-all"
             >
               Learn More
             </a>
@@ -473,59 +449,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. FOOTER */}
-      <footer className="bg-slate-900 text-slate-400 py-12 px-6 border-t border-slate-800">
+      {/* 7. FOOTER */}
+      <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-800/80">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           
           <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="bg-blue-600 text-white p-1.5 rounded-lg">
-                <GraduationCap className="w-5 h-5" />
-              </div>
+              <Image 
+                src="/logo.png" 
+                alt="InternNova Logo" 
+                width={28} 
+                height={28} 
+                className="w-7 h-7 object-contain brightness-200"
+              />
               <span className="text-lg font-bold text-white">InternNova</span>
             </div>
-            <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
+            <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-medium">
               Connecting university students with high-impact internships, alumni referral networks, and top corporate employers.
             </p>
           </div>
 
           <div className="space-y-3">
             <p className="text-xs font-bold text-white uppercase tracking-wider">Quick Links</p>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#" className="hover:text-white transition-colors">Home</a></li>
-              <li><a href="/about" className="hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Internships</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Alumni Referrals</a></li>
+            <ul className="space-y-2 text-xs font-medium">
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Home</a></li>
+              <li><a href="/about" className="hover:text-indigo-400 transition-colors">About</a></li>
+              <li><a href="/internships" className="hover:text-indigo-400 transition-colors">Internships</a></li>
+              <li><a href="/dashboard" className="hover:text-indigo-400 transition-colors">Alumni Referrals</a></li>
             </ul>
           </div>
 
           <div className="space-y-3">
             <p className="text-xs font-bold text-white uppercase tracking-wider">For Users</p>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#" className="hover:text-white transition-colors">Student</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Alumni</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">HR / Company</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Admin</a></li>
+            <ul className="space-y-2 text-xs font-medium">
+              <li><a href="/auth/login" className="hover:text-indigo-400 transition-colors">Student</a></li>
+              <li><a href="/auth/login" className="hover:text-indigo-400 transition-colors">Alumni</a></li>
+              <li><a href="/auth/login" className="hover:text-indigo-400 transition-colors">HR / Company</a></li>
             </ul>
           </div>
 
           <div className="space-y-3">
             <p className="text-xs font-bold text-white uppercase tracking-wider">Support</p>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+            <ul className="space-y-2 text-xs font-medium">
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Contact Us</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium">
           <p>© 2026 InternNova. All rights reserved.</p>
           <div className="flex items-center gap-4 text-slate-400">
-            <a href="#" aria-label="Website" className="hover:text-white transition-colors"><Globe className="w-4 h-4" /></a>
-            <a href="#" aria-label="Share" className="hover:text-white transition-colors"><Share2 className="w-4 h-4" /></a>
-            <a href="#" aria-label="Community" className="hover:text-white transition-colors"><MessageCircle className="w-4 h-4" /></a>
+            <a href="#" aria-label="Website" className="hover:text-indigo-400 transition-colors"><Globe className="w-4 h-4" /></a>
+            <a href="#" aria-label="Share" className="hover:text-indigo-400 transition-colors"><Share2 className="w-4 h-4" /></a>
+            <a href="#" aria-label="Community" className="hover:text-indigo-400 transition-colors"><MessageCircle className="w-4 h-4" /></a>
           </div>
         </div>
       </footer>
