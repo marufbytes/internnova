@@ -1,24 +1,60 @@
 'use client';
 
-import React from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit3, Briefcase, Clock, Laptop } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin, Calendar, Edit3, Briefcase, Clock, Laptop, Loader2, AlertCircle } from 'lucide-react';
 
 export default function StudentProfilePage() {
-  // ডামি প্রফাইল ডাটা (রিয়েল অ্যাপে API বা সেশন থেকে ফেচ করবেন)
-  const profile = {
-    name: 'Abrar Rahman',
-    department: 'Computer Science & Engineering',
-    university: 'BRAC University',
-    profileCompletion: '85% complete',
-    email: 'abrar.rahman@g.bracu.ac.bd',
-    phone: '+880 17••••••',
-    location: 'Dhaka, Bangladesh',
-    graduation: 'December 2026',
-    preferredRoles: 'Product Design, Frontend',
-    workMode: 'Hybrid or Remote',
-    availability: '20 hours / week',
-    skills: ['UI/UX Design', 'React', 'Product Research'],
-  };
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Fetch Logged-in Student Profile from Backend API
+  useEffect(() => {
+    const token = document.cookie
+      .split(';')
+      .find((c) => c.trim().startsWith('access_token='))
+      ?.split('=')[1];
+
+    fetch('http://localhost:3000/auth/profile', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch profile information.');
+        return res.json();
+      })
+      .then((data) => {
+        setProfile(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || 'Something went wrong.');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center space-y-3 shadow-sm">
+        <AlertCircle className="w-8 h-8 text-rose-400 mx-auto" />
+        <p className="text-xs font-semibold text-slate-600">{error || 'Profile not found.'}</p>
+      </div>
+    );
+  }
+
+  // Generate Initials for Avatar (e.g., Abrar Shahriar -> AS)
+  const nameInitials = profile.name
+    ? profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+    : 'U';
+
+  const skills = profile.skills || ['Full-stack Development', 'React', 'TypeScript'];
 
   return (
     <div className="space-y-6">
@@ -35,7 +71,7 @@ export default function StudentProfilePage() {
 
         {/* Edit Profile Button */}
         <button
-          onClick={() => alert('Edit profile clicked!')}
+          onClick={() => alert('Edit profile functionality coming soon!')}
           className="bg-slate-950 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl text-xs font-semibold inline-flex items-center gap-2 shadow-sm transition-colors self-start sm:self-auto"
         >
           <Edit3 className="w-4 h-4" />
@@ -48,7 +84,7 @@ export default function StudentProfilePage() {
         <div className="flex items-center gap-5">
           {/* Avatar */}
           <div className="w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md">
-            AR
+            {nameInitials}
           </div>
 
           {/* Info */}
@@ -57,12 +93,12 @@ export default function StudentProfilePage() {
               {profile.name}
             </h2>
             <p className="text-xs font-semibold text-slate-500">
-              {profile.department} · {profile.university}
+              {profile.department || 'Computer Science & Engineering'} · {profile.university || 'American International University-Bangladesh'}
             </p>
 
             {/* Skill Tags */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              {profile.skills.map((skill, index) => (
+              {skills.map((skill: string, index: number) => (
                 <span
                   key={index}
                   className="bg-slate-50 text-slate-600 border border-slate-200/80 px-2.5 py-1 rounded-lg text-[11px] font-medium"
@@ -76,7 +112,7 @@ export default function StudentProfilePage() {
 
         {/* Profile Completion Badge */}
         <div className="self-start md:self-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3.5 py-1.5 rounded-full text-xs font-semibold">
-          Profile {profile.profileCompletion}
+          Profile 100% Active
         </div>
       </div>
 
@@ -101,21 +137,21 @@ export default function StudentProfilePage() {
               <span className="text-slate-500 font-medium flex items-center gap-2">
                 <Phone className="w-4 h-4 text-slate-400" /> Phone
               </span>
-              <span className="font-bold text-slate-900">{profile.phone}</span>
+              <span className="font-bold text-slate-900">{profile.phone || '+880 1XXXXXXXXX'}</span>
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-slate-100">
               <span className="text-slate-500 font-medium flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-slate-400" /> Location
               </span>
-              <span className="font-bold text-slate-900">{profile.location}</span>
+              <span className="font-bold text-slate-900">{profile.location || 'Dhaka, Bangladesh'}</span>
             </div>
 
             <div className="flex items-center justify-between py-3">
               <span className="text-slate-500 font-medium flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-slate-400" /> Graduation
+                <Calendar className="w-4 h-4 text-slate-400" /> Role / Account Type
               </span>
-              <span className="font-bold text-slate-900">{profile.graduation}</span>
+              <span className="font-bold text-slate-900 uppercase">{profile.role}</span>
             </div>
           </div>
         </div>
@@ -131,21 +167,21 @@ export default function StudentProfilePage() {
               <span className="text-slate-500 font-medium flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5 text-slate-400" /> Preferred roles
               </span>
-              <p className="font-bold text-slate-900">{profile.preferredRoles}</p>
+              <p className="font-bold text-slate-900">{profile.preferredRoles || 'Full-stack Developer, Software Engineer'}</p>
             </div>
 
             <div className="py-2.5 border-b border-slate-100 space-y-1">
               <span className="text-slate-500 font-medium flex items-center gap-1.5">
                 <Laptop className="w-3.5 h-3.5 text-slate-400" /> Work mode
               </span>
-              <p className="font-bold text-slate-900">{profile.workMode}</p>
+              <p className="font-bold text-slate-900">{profile.workMode || 'Remote / Hybrid'}</p>
             </div>
 
             <div className="py-2.5 space-y-1">
               <span className="text-slate-500 font-medium flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-slate-400" /> Availability
               </span>
-              <p className="font-bold text-slate-900">{profile.availability}</p>
+              <p className="font-bold text-slate-900">{profile.availability || 'Full-time / Part-time'}</p>
             </div>
           </div>
         </div>

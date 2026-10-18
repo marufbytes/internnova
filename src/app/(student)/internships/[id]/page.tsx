@@ -1,143 +1,229 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import { Building2, MapPin, ArrowLeft, CheckCircle, FileText, Send, Clock, Sparkles } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Briefcase, 
+  CheckCircle2, 
+  Bookmark, 
+  Building2, 
+  Loader2, 
+  AlertCircle 
+} from 'lucide-react';
+import ApplyModal from '../../ApplyModal';
 
-const mockInternship = {
-  id: 1,
-  title: 'Frontend Developer Intern',
-  companyName: 'TechCorp Ltd.',
-  industry: 'Software & Cloud Solutions',
-  location: 'Remote',
-  stipend: '$800 - $1,200/mo',
-  type: 'Full-time Intern',
-  isActive: true,
-  createdAt: '2026-09-15',
-  description: 'We are looking for a passionate Frontend Developer Intern to join our core engineering team. You will work directly with senior software engineers to build responsive, accessible web applications using Next.js, React, and Tailwind CSS.',
-  requirements: [
-    'Strong knowledge of HTML, CSS, JavaScript (ES6+), and TypeScript.',
-    'Hands-on experience with React and Next.js App Router.',
-    'Familiarity with REST APIs and state management.',
-    'Good communication skills and eagerness to learn software architecture.'
-  ]
-};
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-const userResumes = [
-  { id: 1, title: 'Fullstack_Developer_2026.pdf' },
-  { id: 2, title: 'Frontend_React_Focus.pdf' }
-];
+export default function InternshipDetailsPage({ params }: PageProps) {
+  // Safe unwrap using React.use() for Next.js App Router
+  const resolvedParams = use(params);
+  const internshipId = resolvedParams.id;
 
-export default function InternshipDetailsPage() {
-  const [selectedResume, setSelectedResume] = useState<number>(userResumes[0].id);
-  const [isApplying, setIsApplying] = useState(false);
-  const [applied, setApplied] = useState(false);
+  const [internship, setInternship] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [isApplied, setIsApplied] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
 
-  const handleApply = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsApplying(true);
-    // Connect with NestJS backend API: POST /applications
-    setTimeout(() => {
-      setIsApplying(false);
-      setApplied(true);
-    }, 800);
+  // Fetch Single Internship & Check Application Status from DB
+  useEffect(() => {
+    const token = document.cookie
+      .split(';')
+      .find((c) => c.trim().startsWith('access_token='))
+      ?.split('=')[1];
+
+    // 1. Fetch Internship Details from Backend DB
+    fetch(`http://localhost:3000/internship/${internshipId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Internship not found.');
+        return res.json();
+      })
+      .then((data) => {
+        setInternship(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || 'Something went wrong.');
+        setLoading(false);
+      });
+
+    // 2. Check if student already applied
+    if (token) {
+      fetch('http://localhost:3000/application/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const hasApplied = data.some((app) => app.internship?.id === Number(internshipId));
+            setIsApplied(hasApplied);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [internshipId]);
+
+  const handleApplySuccess = () => {
+    setIsApplied(true);
+    setShowApplyModal(false);
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header userName="Alex Johnson" userRole="Student" />
-
-      <div className="flex flex-1">
-        <Sidebar role="STUDENT" />
-
-        <main className="flex-1 p-5 md:p-8 space-y-6 max-w-5xl mx-auto w-full">
-          {/* Back Navigation */}
-          <Link href="/student/internship" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
-            <ArrowLeft className="w-4 h-4" /> Back to Internships
-          </Link>
-
-          {/* Header Card */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{mockInternship.title}</h1>
-                  <span className="px-2.5 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">Active</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2">
-                  <span className="flex items-center gap-1 font-medium text-slate-700"><Building2 className="w-3.5 h-3.5 text-slate-400" />{mockInternship.companyName}</span>
-                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400" />{mockInternship.location}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-slate-400" />Posted {mockInternship.createdAt}</span>
-                </div>
-              </div>
-
-              <div className="text-right sm:text-right">
-                <span className="text-xs text-slate-400 font-medium block">Stipend / Allowance</span>
-                <span className="text-lg font-bold text-slate-900">{mockInternship.stipend}</span>
-              </div>
-            </div>
-
-            {/* Description & Requirements */}
-            <div className="space-y-4 pt-2">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1">About the Role</h3>
-                <p className="text-xs leading-relaxed text-slate-600">{mockInternship.description}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 mb-2">Key Requirements</h3>
-                <ul className="space-y-1.5">
-                  {mockInternship.requirements.map((req, i) => (
-                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Application Action Section */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-600" /> Submit Application
-            </h3>
-
-            {applied ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-1">
-                <p className="text-sm font-bold text-emerald-800">Application Submitted!</p>
-                <p className="text-xs text-emerald-600">You can track your status in the <Link href="/student/applications" className="underline font-semibold">My Applications</Link> page.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleApply} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Select Resume</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {userResumes.map((res) => (
-                      <label key={res.id} onClick={() => setSelectedResume(res.id)} className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition ${selectedResume === res.id ? 'border-slate-900 bg-slate-50 shadow-sm' : 'border-slate-200/80 hover:bg-slate-50'}`}>
-                        <div className="flex items-center gap-2.5">
-                          <FileText className="w-4 h-4 text-slate-500" />
-                          <span className="text-xs font-medium text-slate-800">{res.title}</span>
-                        </div>
-                        <input type="radio" name="resume" checked={selectedResume === res.id} onChange={() => {}} className="accent-slate-900" />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <button type="submit" disabled={isApplying} className="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm disabled:opacity-50">
-                    {isApplying ? 'Submitting...' : <><Send className="w-3.5 h-3.5" /> Apply Now</>}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </main>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
       </div>
+    );
+  }
+
+  if (error || !internship) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/internships"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Internships
+        </Link>
+        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center space-y-3 shadow-sm">
+          <AlertCircle className="w-8 h-8 text-rose-400 mx-auto" />
+          <p className="text-xs font-semibold text-slate-600">{error || 'Internship not found.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const company = internship.company;
+
+  return (
+    <div className="space-y-6">
+      {/* Back Button */}
+      <Link
+        href="/internships"
+        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Internships
+      </Link>
+
+      {/* Hero Header Card */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-start gap-5">
+          <div className="w-16 h-16 bg-slate-950 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shrink-0 shadow-sm">
+            {company?.name?.charAt(0) || <Building2 className="w-7 h-7" />}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`px-3 py-0.5 rounded-full text-[11px] font-semibold ${
+                internship.isActive !== false 
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80' 
+                  : 'bg-rose-50 text-rose-700 border border-rose-200/80'
+              }`}>
+                {internship.isActive !== false ? 'Active Position' : 'Closed'}
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              {internship.title}
+            </h1>
+
+            <p className="text-sm font-semibold text-slate-500">
+              {company?.name || 'Company Name'}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Button (Single Apply / Applied Button in the entire page) */}
+        <div className="flex items-center gap-3">
+          <button className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 rounded-2xl transition-colors">
+            <Bookmark className="w-4 h-4" />
+          </button>
+
+          {isApplied ? (
+            <span className="inline-flex items-center justify-center gap-1.5 px-6 py-3 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-2xl text-xs font-semibold shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              Applied Successfully
+            </span>
+          ) : (
+            <button
+              onClick={() => setShowApplyModal(true)}
+              className="bg-slate-950 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl text-xs font-semibold transition-colors shadow-sm"
+            >
+              Apply now
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left: Dynamic Description & Requirements from DB */}
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm lg:col-span-2 space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              About the role
+            </h2>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium whitespace-pre-line">
+              {internship.description || 'No detailed description provided for this position.'}
+            </p>
+          </div>
+
+          {internship.requirements && (
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                Requirements & Qualifications
+              </h2>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium whitespace-pre-line">
+                {internship.requirements}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar: Company Overview */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Company Overview
+            </h2>
+
+            <div className="space-y-4 text-xs">
+              <div className="flex items-center justify-between py-2.5 border-b border-slate-100">
+                <span className="text-slate-500 font-medium flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-slate-400" /> Company
+                </span>
+                <span className="font-bold text-slate-900">{company?.name || 'N/A'}</span>
+              </div>
+
+              <div className="flex items-center justify-between py-2.5">
+                <span className="text-slate-500 font-medium flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-slate-400" /> Status
+                </span>
+                <span className="font-bold text-slate-900">
+                  {internship.isActive !== false ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Apply Modal Component */}
+      {showApplyModal && (
+        <ApplyModal
+          internship={internship}
+          onClose={() => setShowApplyModal(false)}
+          onSuccess={handleApplySuccess}
+        />
+      )}
     </div>
   );
 }

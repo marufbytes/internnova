@@ -40,7 +40,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
 
   const router = useRouter();
 
-  // Fetch Student Resumes from Backend
+  // Fetch Real Student Resumes from Backend Database
   useEffect(() => {
     const token = document.cookie
       .split(';')
@@ -56,22 +56,11 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
           setResumes(data);
           setSelectedResumeId(String(data[0].id));
         } else {
-          // Mock data fallback
-          const mockResumes = [
-            { id: 101, title: 'My_Resume.pdf', url: '#', updatedAt: 'Oct 12, 2026' },
-            { id: 102, title: 'Frontend_Developer_CV.pdf', url: '#', updatedAt: 'Oct 5, 2026' },
-          ];
-          setResumes(mockResumes);
-          setSelectedResumeId('101');
+          setResumes([]);
         }
       })
       .catch(() => {
-        const mockResumes = [
-          { id: 101, title: 'My_Resume.pdf', url: '#', updatedAt: 'Oct 12, 2026' },
-          { id: 102, title: 'Frontend_Developer_CV.pdf', url: '#', updatedAt: 'Oct 5, 2026' },
-        ];
-        setResumes(mockResumes);
-        setSelectedResumeId('101');
+        setResumes([]);
       });
   }, []);
 
@@ -123,7 +112,6 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
       const data = await res.json();
 
       if (!res.ok) {
-        // Backend return errors like "Alumni email not found in Google OAuth records"
         setError(data.message || 'Failed to submit application.');
         return;
       }
@@ -190,7 +178,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                   <FileText className="w-3.5 h-3.5 text-slate-400" />
                   1. Select Resume <span className="text-rose-500">*</span>
                 </label>
-                {selectedResume && (
+                {selectedResume && selectedResume.url && selectedResume.url !== '#' && (
                   <a
                     href={selectedResume.url}
                     target="_blank"
@@ -203,8 +191,8 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
               </div>
 
               {resumes.length === 0 ? (
-                <p className="text-xs text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
-                  No resume found. Please upload one in your profile first.
+                <p className="text-xs text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100 font-medium">
+                  No resume found from database. Please upload a CV first.
                 </p>
               ) : (
                 <select
@@ -214,7 +202,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                 >
                   {resumes.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.title} {r.updatedAt ? `· Updated ${r.updatedAt}` : ''}
+                      {r.title} {r.updatedAt ? `· Updated ${new Date(r.updatedAt).toLocaleDateString()}` : ''}
                     </option>
                   ))}
                 </select>
@@ -287,7 +275,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                 </div>
 
                 <p className="text-[10px] text-slate-400">
-                        We’ll include this with your application for verification.
+                  We’ll include this with your application for verification.
                 </p>
               </div>
             )}

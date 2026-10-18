@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -10,14 +10,36 @@ import {
   Calendar, 
   Bookmark, 
   User, 
-  Settings, 
-  Menu,
   LogOut
 } from 'lucide-react';
 
-export default function StudentSidebar() {
+interface StudentSidebarProps {
+  isCollapsed: boolean;
+}
+
+export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [studentName, setStudentName] = useState('Abrar Shahriar');
+
+  useEffect(() => {
+    const token = document.cookie
+      .split(';')
+      .find((c) => c.trim().startsWith('access_token='))
+      ?.split('=')[1];
+
+    if (token) {
+      fetch('http://localhost:3000/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.name) {
+            setStudentName(data.name);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -29,45 +51,22 @@ export default function StudentSidebar() {
 
   const accountItems = [
     { name: 'Profile', href: '/profile', icon: User },
-    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   const handleLogout = () => {
-    // Logout logic (e.g., clearing session/tokens and redirecting)
+    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = '/';
   };
 
   return (
     <aside 
-      className={`bg-white border-r border-slate-200/80 py-6 px-3 flex flex-col justify-between shrink-0 h-screen z-20 transition-all duration-300 ${
+      className={`bg-white border-r border-slate-200 py-6 px-3 flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
-      <div className="overflow-y-auto overflow-x-hidden pr-0.5">
-        {/* Top Header & Always 3-Line Menu Button */}
-        <div className={`flex items-center mb-8 px-2 ${isCollapsed ? 'flex-col gap-4 items-center' : 'justify-between'}`}>
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
-              IN
-            </div>
-            {!isCollapsed && (
-              <span className="font-bold text-lg tracking-tight text-slate-900 transition-opacity duration-200 whitespace-nowrap">
-                InternNova
-              </span>
-            )}
-          </Link>
-
-          {/* 3-Line Menu Button */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200/60 shrink-0"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            <Menu className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* WORKSPACE Navigation */}
+      <div className="overflow-y-auto overflow-x-hidden">
+        
+        {/* WORKSPACE Section */}
         <div className="mb-6">
           {!isCollapsed && (
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">
@@ -105,7 +104,7 @@ export default function StudentSidebar() {
           </nav>
         </div>
 
-        {/* ACCOUNT Navigation */}
+        {/* ACCOUNT Section */}
         <div>
           {!isCollapsed && (
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">
@@ -137,7 +136,7 @@ export default function StudentSidebar() {
         </div>
       </div>
 
-      {/* Logout Button Section */}
+      {/* Logout Button */}
       <button 
         onClick={handleLogout}
         title={isCollapsed ? "Log out" : undefined}
@@ -152,7 +151,7 @@ export default function StudentSidebar() {
           {!isCollapsed && (
             <div className="text-left overflow-hidden">
               <p className="text-xs font-bold truncate">Log out</p>
-              <p className="text-[11px] text-rose-500/80 truncate">Abrar Rahman</p>
+              <p className="text-[11px] text-rose-500/80 truncate">{studentName}</p>
             </div>
           )}
         </div>
