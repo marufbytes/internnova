@@ -44,7 +44,7 @@ export default function LoginPage() {
       const userRole = data.user?.role;
 
       if (userRole === 'HR') {
-        router.push('/hr/dashboard');
+        router.push('/hr-dashboard');
       } else if (userRole === 'ALUMNI') {
         router.push('/alumni/dashboard');
       } else if (userRole === 'ADMIN') {
