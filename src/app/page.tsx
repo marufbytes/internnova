@@ -82,7 +82,7 @@ export default function Home() {
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/')}>
             <div className="p-1.5 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg shadow-indigo-500/20">
               <Image 
-                src="/logo.png" 
+                src="/logo.jpg" 
                 alt="InternNova Logo" 
                 width={28} 
                 height={28} 
