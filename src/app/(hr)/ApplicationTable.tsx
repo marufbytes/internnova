@@ -116,7 +116,7 @@ export default function ApplicationsTable({
               placeholder="Search by candidate name or intership..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full rounded-full bg-slate-100 py-2 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:bg-slate-200/70 focus:ring-1 focus:ring-slate-300 border-none"
+              className="w-full rounded-full bg-slate-100 py-2 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:bg-slate-200/70 focus:ring-1 focus:ring-blue-200 border-none"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function ApplicationsTable({
                     if (statusLower === "accepted") {
                       badgeStyle = "bg-emerald-50 text-emerald-600 border border-emerald-200";
                     } else if (statusLower === "interview" || statusLower === "reviewed") {
-                      badgeStyle = "bg-purple-50 text-purple-600 border border-purple-200";
+                      badgeStyle = "bg-blue-50 text-blue-600 border border-blue-200";
                     } else if (statusLower === "rejected") {
                       badgeStyle = "bg-rose-50 text-rose-600 border border-rose-200";
                     }

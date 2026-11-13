@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {Briefcase,FileText,Clock,CheckCircle2,ChevronRight,} from "lucide-react";
 import {ResponsiveContainer,LineChart,Line,BarChart,Bar,PieChart,Pie,XAxis,YAxis,Tooltip, Cell,} from "recharts";
@@ -39,7 +39,7 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:3000/company/my", {
+        const res = await api.get("/company/my", {
           withCredentials: true,
         });
 
@@ -135,8 +135,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/application/company?page=${currentPage}&limit=5`,
+        const res = await api.get(
+          `/application/company?page=${currentPage}&limit=5`,
           { withCredentials: true }
         );
 

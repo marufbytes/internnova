@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import { InternshipInput, InternshipOutput, internshipSchema } from "@/lib/validation";
 
@@ -24,7 +24,7 @@ export default function CreateInternshipPage() {
 
   async function onSubmit(data: InternshipOutput) {
     try {
-      await axios.post("http://localhost:3000/internship", data, {
+      await api.post("/internship", data, {
         withCredentials: true,
       });
 
@@ -132,7 +132,7 @@ export default function CreateInternshipPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 bg-black hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
+              className="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-full text-xs font-bold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
             >
               {isSubmitting ? "Publishing..." : "Publish Internship"}
             </button>

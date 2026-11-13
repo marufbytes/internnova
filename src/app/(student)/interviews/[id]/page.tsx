@@ -13,6 +13,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
+import api from '@/lib/api';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,21 +30,14 @@ export default function InterviewDetailsPage({ params }: PageProps) {
 
   // Fetch Real Single Interview Details from Backend using HTTP-only cookie
   useEffect(() => {
-    fetch(`http://localhost:3000/interviews/${interviewId}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // HTTP-only cookie backend-e pathanor jonno
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch interview details.');
-        return res.json();
-      })
+    api.get(`/interviews/${interviewId}`)
+      .then((res) => res.data)
       .then((data) => {
         setInterview(data);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Something went wrong.');
+        setError(err.response?.data?.message || (err.response ? 'Failed to fetch interview details.' : err.message) || 'Something went wrong.');
         setLoading(false);
       });
   }, [interviewId]);
@@ -178,7 +172,7 @@ export default function InterviewDetailsPage({ params }: PageProps) {
                 href={interview.meetingLink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2.5 bg-slate-950 hover:bg-slate-800 text-white px-5 py-3 rounded-2xl text-xs font-semibold transition-colors shadow-sm"
+                className="inline-flex items-center justify-center gap-2.5 bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-2xl text-xs font-semibold transition-colors shadow-sm"
               >
                 <Video className="w-4 h-4" />
                 Join interview

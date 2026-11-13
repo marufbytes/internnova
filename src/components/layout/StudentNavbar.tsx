@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Menu, Search, Bell } from 'lucide-react';
+import { Menu, Search, Bell, GraduationCap } from 'lucide-react';
+import api from '@/lib/api';
 
 interface StudentNavbarProps {
   isCollapsed: boolean;
@@ -15,15 +15,8 @@ export default function StudentNavbar({ isCollapsed, onToggleSidebar }: StudentN
   const [initials, setInitials] = useState('U');
 
   useEffect(() => {
-    fetch('http://localhost:3000/users/me', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        return res.json();
-      })
+    api.get('/users/me')
+      .then((res) => res.data)
       .then((data) => {
         updateUserInfo(data);
       })
@@ -86,15 +79,11 @@ export default function StudentNavbar({ isCollapsed, onToggleSidebar }: StudentN
 
         {!isCollapsed && (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <Image 
-              src="/logo.png" 
-              alt="InternNova Logo" 
-              width={28} 
-              height={28} 
-              className="w-7 h-7 object-contain shrink-0"
-            />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-blue-700 bg-transparent text-blue-700">
+              <GraduationCap className="h-5 w-5 text-blue-700" />
+            </div>
             <div className="flex flex-col leading-none">
-              <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+              <span className="text-sm font-extrabold text-blue-800 tracking-tight">
                 InternNova
               </span>
               <span className="text-[10px] font-semibold text-slate-400 mt-0.5">
@@ -112,7 +101,7 @@ export default function StudentNavbar({ isCollapsed, onToggleSidebar }: StudentN
           <input 
             type="text" 
             placeholder="Search internships, candidates, roles..." 
-            className="w-full bg-slate-50 border border-slate-300 rounded-full pl-11 pr-4 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white transition-all shadow-sm"
+            className="w-full bg-slate-50 border border-slate-300 rounded-full pl-11 pr-4 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm"
           />
         </div>
       </div>
@@ -134,7 +123,7 @@ export default function StudentNavbar({ isCollapsed, onToggleSidebar }: StudentN
         {/* Dynamic User Profile Badge */}
         <div className="flex items-center gap-2.5 border border-slate-200 rounded-2xl p-1 pr-3.5 bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer">
           <div className="relative">
-            <div className="w-8 h-8 bg-slate-950 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+            <div className="w-8 h-8 bg-blue-800 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
               {initials}
             </div>
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>

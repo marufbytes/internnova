@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Calendar, Edit3, Loader2, AlertCircle, FileText, Upload, Trash2 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -23,25 +24,25 @@ export default function StudentProfilePage() {
   const fetchProfileAndResumes = async () => {
     try {
       // 1. Fetch Profile
-      const profileRes = await fetch('http://localhost:3000/users/me', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      
-      if (!profileRes.ok) throw new Error('Failed to fetch profile information.');
-      const profileData = await profileRes.json();
+      let profileData: any;
+      try {
+        const profileRes = await api.get('/users/me');
+        profileData = profileRes.data;
+      } catch (err: any) {
+        throw new Error(err.response?.data?.message || 'Failed to fetch profile information.');
+      }
       setProfile(profileData);
 
       // 2. Fetch Resumes directly from backend without fake fallback
-      const resumeRes = await fetch('http://localhost:3000/resume', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      
-      if (resumeRes.ok) {
-        const resumeData = await resumeRes.json();
+      let resumeData: any = null;
+      try {
+        const resumeRes = await api.get('/resume');
+        resumeData = resumeRes.data;
+      } catch {
+        resumeData = null;
+      }
+
+      if (resumeData !== null) {
         if (Array.isArray(resumeData)) {
           // Strictly filter only current student's resumes if studentId is present
           const userResumes = resumeData.filter(
@@ -78,13 +79,7 @@ export default function StudentProfilePage() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3000/resume', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error('Failed to upload resume.');
+      await api.post('/resume', formData);
 
       setTitle('');
       setSkillsInput('');
@@ -92,7 +87,7 @@ export default function StudentProfilePage() {
       await fetchProfileAndResumes();
       alert('Resume uploaded successfully!');
     } catch (err: any) {
-      alert(err.message || 'Failed to upload resume.');
+      alert(err.response?.data?.message || 'Failed to upload resume.');
     } finally {
       setUploading(false);
     }
@@ -103,18 +98,13 @@ export default function StudentProfilePage() {
     if (!confirm('Are you sure you want to delete this resume?')) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/resume/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      await api.delete(`/resume/${id}`);
 
-      if (!res.ok) throw new Error('Failed to delete resume.');
-      
       // Update UI state immediately and re-sync
       setResumes((prev) => prev.filter((r) => r.id !== id));
       await fetchProfileAndResumes();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete resume.');
+      alert(err.response?.data?.message || 'Failed to delete resume.');
     }
   };
 
@@ -162,7 +152,7 @@ export default function StudentProfilePage() {
 
         <button
           onClick={() => alert('Edit profile functionality coming soon!')}
-          className="bg-slate-950 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl text-xs font-semibold inline-flex items-center gap-2 shadow-sm transition-colors self-start sm:self-auto"
+          className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-2xl text-xs font-semibold inline-flex items-center gap-2 shadow-sm transition-colors self-start sm:self-auto"
         >
           <Edit3 className="w-4 h-4" />
           Edit profile
@@ -172,7 +162,7 @@ export default function StudentProfilePage() {
       {/* 2. Top Profile Hero Card */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md">
+          <div className="w-20 h-20 bg-blue-800 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md">
             {nameInitials}
           </div>
 
@@ -259,7 +249,7 @@ export default function StudentProfilePage() {
             resumes.map((resItem) => (
               <div key={resItem.id} className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-950 text-white rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-blue-800 text-white rounded-xl flex items-center justify-center shrink-0">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
@@ -272,7 +262,7 @@ export default function StudentProfilePage() {
 
                 <div className="flex items-center gap-2">
                   <a
-                    href={`http://localhost:3000/${resItem.fileUrl}`}
+                    href={`${api.defaults.baseURL}/${resItem.fileUrl}`}
                     target="_blank"
                     rel="noreferrer"
                     className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-colors"
@@ -307,7 +297,7 @@ export default function StudentProfilePage() {
                 placeholder="e.g. Full-stack Developer Resume"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
                 required
               />
             </div>
@@ -319,7 +309,7 @@ export default function StudentProfilePage() {
                 placeholder="React, Node.js, TypeScript"
                 value={skillsInput}
                 onChange={(e) => setSkillsInput(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
@@ -329,7 +319,7 @@ export default function StudentProfilePage() {
                 type="file"
                 accept=".pdf"
                 onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-950 file:text-white hover:file:bg-slate-800 cursor-pointer"
+                className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-800 file:text-white hover:file:bg-blue-800 cursor-pointer"
                 required
               />
             </div>
@@ -339,7 +329,7 @@ export default function StudentProfilePage() {
             <button
               type="submit"
               disabled={uploading}
-              className="bg-slate-950 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+              className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold inline-flex items-center gap-2 transition-colors disabled:opacity-50"
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               Upload Resume

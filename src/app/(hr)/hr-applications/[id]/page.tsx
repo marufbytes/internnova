@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import axios from 'axios';
+import api from "@/lib/api";
 
 interface Student {
   id: number;
@@ -93,8 +93,8 @@ export default function ApplicationDetailPage() {
     setError(null);
 
     try {
-      const response = await axios.get<Application>(
-        `http://localhost:3000/application/${applicationId}`,
+      const response = await api.get<Application>(
+        `/application/${applicationId}`,
         { 
           withCredentials: true 
         }
@@ -105,7 +105,7 @@ export default function ApplicationDetailPage() {
     } 
     catch (err: unknown) {
       console.error('Fetch Details Error:', err);
-      setError(getErrorMessage(err, 'Failed to load application details.'));
+      setError(getErrorMessage(err));
     } 
     finally
     {
@@ -121,8 +121,8 @@ export default function ApplicationDetailPage() {
   const handleStatusChange = async (newStatus: string) => {
     setActionLoading(true);
     try {
-      await axios.patch(
-        `http://localhost:3000/application/${applicationId}/status`,
+      await api.patch(
+        `/application/${applicationId}/status`,
         { 
           status: newStatus
         },
@@ -134,7 +134,7 @@ export default function ApplicationDetailPage() {
     } catch (err: unknown) 
     {
       console.error('Update Status Error:', err);
-      alert(getErrorMessage(err, 'Failed to update status.'));
+      alert(getErrorMessage(err));
     } 
     finally {
       setActionLoading(false);
@@ -166,8 +166,8 @@ export default function ApplicationDetailPage() {
           ? meetingLink.trim()
           : `Physical Location: ${locationDetails.trim()}`;
 
-      await axios.post(
-        `http://localhost:3000/interviews`,
+      await api.post(
+        `/interviews`,
         {
           applicationId: Number(applicationId),
           scheduledDate: combinedDateTime,
@@ -185,7 +185,7 @@ export default function ApplicationDetailPage() {
       await fetchApplicationDetails();
     } catch (err: unknown) {
       console.error('Schedule Interview Error:', err);
-      alert(getErrorMessage(err, 'Failed to schedule interview.'));
+      alert(getErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -206,8 +206,8 @@ export default function ApplicationDetailPage() {
 
     setActionLoading(true);
     try {
-      await axios.patch(
-        `http://localhost:3000/interviews/${latestInterview.id}/complete`,
+      await api.patch(
+        `/interviews/${latestInterview.id}/complete`,
         { decision: finalDecision },
         { withCredentials: true }
       );
@@ -216,7 +216,7 @@ export default function ApplicationDetailPage() {
       await fetchApplicationDetails();
     } catch (err: unknown) {
       console.error('Complete Interview Error:', err);
-      alert(getErrorMessage(err, 'Failed to complete interview.'));
+      alert(getErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -235,7 +235,7 @@ export default function ApplicationDetailPage() {
     const cleanFilename = decodeURIComponent(rawFilename);
     const encodedFilename = encodeURIComponent(cleanFilename);
 
-    const fullUrl = `http://localhost:3000/uploads/${encodedFilename}`;
+    const fullUrl = `${api.defaults.baseURL}/uploads/${encodedFilename}`;
     window.open(fullUrl, '_blank');
   };
 
@@ -360,7 +360,7 @@ export default function ApplicationDetailPage() {
           {application.resume?.fileUrl ? (
             <button
               onClick={() => handleViewResume(application.resume!.fileUrl)}
-              className="w-full text-center py-2.5 px-4 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition shadow-xs cursor-pointer"
+              className="w-full text-center py-2.5 px-4 bg-blue-700 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition shadow-xs cursor-pointer"
             >
               View Resume
             </button>
@@ -396,28 +396,28 @@ export default function ApplicationDetailPage() {
 
             <div className="flex items-center gap-2 text-xs font-medium pt-2">
               <div className="flex flex-col items-center gap-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${statusUpper === 'PENDING' || isPendingDone ? 'bg-black text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${statusUpper === 'PENDING' || isPendingDone ? 'bg-blue-700 text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
                   {statusUpper === 'PENDING' ? '1' : '✓'}
                 </div>
                 <span className={`text-[11px] ${statusUpper === 'PENDING' || isPendingDone ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>Pending</span>
               </div>
-              <div className={`h-0.5 flex-1 mb-5 ${isPendingDone ? 'bg-black' : 'bg-gray-200'}`} />
+              <div className={`h-0.5 flex-1 mb-5 ${isPendingDone ? 'bg-blue-700' : 'bg-gray-200'}`} />
 
               <div className="flex flex-col items-center gap-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${isReviewedDone ? 'bg-black text-white' : isReviewedActive ? 'bg-black text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${isReviewedDone ? 'bg-blue-700 text-white' : isReviewedActive ? 'bg-blue-700 text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
                   {isReviewedDone ? '✓' : '2'}
                 </div>
                 <span className={`text-[11px] ${isReviewedActive || isReviewedDone ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>Reviewed</span>
               </div>
-              <div className={`h-0.5 flex-1 mb-5 ${isReviewedDone ? 'bg-black' : 'bg-gray-200'}`} />
+              <div className={`h-0.5 flex-1 mb-5 ${isReviewedDone ? 'bg-blue-700' : 'bg-gray-200'}`} />
 
               <div className="flex flex-col items-center gap-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${isInterviewDone ? 'bg-black text-white' : isInterviewActive ? 'bg-black text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] ${isInterviewDone ? 'bg-blue-700 text-white' : isInterviewActive ? 'bg-blue-700 text-white font-bold' : 'bg-gray-100 text-gray-400 border'}`}>
                   {isInterviewDone ? '✓' : '3'}
                 </div>
                 <span className={`text-[11px] ${isInterviewActive || isInterviewDone ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>Interview</span>
               </div>
-              <div className={`h-0.5 flex-1 mb-5 ${isInterviewDone ? 'bg-black' : 'bg-gray-200'}`} />
+              <div className={`h-0.5 flex-1 mb-5 ${isInterviewDone ? 'bg-blue-700' : 'bg-gray-200'}`} />
 
               <div className="flex flex-col items-center gap-1">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${statusUpper === 'ACCEPTED' ? 'bg-emerald-600 text-white' : statusUpper === 'REJECTED' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-400 border'}`}>
@@ -459,7 +459,7 @@ export default function ApplicationDetailPage() {
                   <button
                     disabled={actionLoading}
                     onClick={() => handleStatusChange('reviewed')}
-                    className="px-4 py-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
+                    className="px-4 py-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
                   >
                     Review Application
                   </button>
@@ -477,7 +477,7 @@ export default function ApplicationDetailPage() {
                 <button
                   disabled={actionLoading}
                   onClick={() => setShowScheduleModal(true)}
-                  className="px-4 py-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
+                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
                 >
                   Schedule Interview
                 </button>
@@ -487,7 +487,7 @@ export default function ApplicationDetailPage() {
                 <button
                   disabled={actionLoading}
                   onClick={() => setShowCompleteModal(true)}
-                  className="px-4 py-2.5 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
+                  className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer"
                 >
                   Complete Interview
                 </button>
@@ -560,7 +560,7 @@ export default function ApplicationDetailPage() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setShowScheduleModal(false)} className="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium cursor-pointer">Cancel</button>
-                <button type="submit" disabled={actionLoading} className="px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 font-semibold cursor-pointer">
+                <button type="submit" disabled={actionLoading} className="px-4 py-1.5 bg-blue-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 font-semibold cursor-pointer">
                   {actionLoading ? 'Scheduling...' : 'Confirm Schedule'}
                 </button>
               </div>
@@ -599,7 +599,7 @@ export default function ApplicationDetailPage() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setShowCompleteModal(false)} className="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium cursor-pointer">Cancel</button>
-                <button type="submit" disabled={actionLoading} className="px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 font-semibold cursor-pointer">
+                <button type="submit" disabled={actionLoading} className="px-4 py-1.5 bg-blue-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 font-semibold cursor-pointer">
                   {actionLoading ? 'Submitting...' : 'Submit Decision'}
                 </button>
               </div>

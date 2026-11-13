@@ -11,21 +11,15 @@ import {
   Video,
   Loader2
 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function DashboardPage() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/application/my', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', 
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch applications');
-        return res.json();
-      })
+    api.get('/application/my')
+      .then((res) => res.data)
       .then((data) => {
         if (Array.isArray(data)) {
           setApplications(data);
@@ -60,7 +54,7 @@ export default function DashboardPage() {
       case 'REVIEWED':
         return 'bg-blue-50 text-blue-600 border border-blue-100';
       case 'INTERVIEW':
-        return 'bg-indigo-50 text-indigo-600 border border-indigo-100';
+        return 'bg-blue-50 text-blue-600 border border-blue-100';
       case 'ACCEPTED':
         return 'bg-emerald-50 text-emerald-600 border border-emerald-100';
       case 'REJECTED':
@@ -92,7 +86,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/internships"
-          className="bg-slate-950 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md self-start sm:self-auto inline-flex items-center justify-center"
+          className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow-md self-start sm:self-auto inline-flex items-center justify-center"
         >
           Browse internships
         </Link>
@@ -180,7 +174,7 @@ export default function DashboardPage() {
                     <tr key={app.id} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-center font-bold text-slate-800 text-sm shrink-0 group-hover:bg-slate-950 group-hover:text-white transition-colors">
+                          <div className="w-9 h-9 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-center font-bold text-slate-800 text-sm shrink-0 group-hover:bg-blue-800 group-hover:text-white transition-colors">
                             {app.internship?.company?.name?.charAt(0) || 'I'}
                           </div>
                           <div>
@@ -238,7 +232,7 @@ export default function DashboardPage() {
           <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
             <div className="flex items-center gap-5">
               {/* Calendar Date Badge */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 w-16 h-16 flex flex-col items-center justify-center shrink-0 group-hover:bg-slate-950 group-hover:text-white group-hover:border-slate-950 transition-colors">
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 w-16 h-16 flex flex-col items-center justify-center shrink-0 group-hover:bg-blue-800 group-hover:text-white group-hover:border-blue-700 transition-colors">
                 <span className="text-xl font-extrabold text-slate-900 group-hover:text-white leading-none transition-colors">
                   {interviewDetails?.date ? new Date(interviewDetails.date).getDate() : '22'}
                 </span>
@@ -274,7 +268,7 @@ export default function DashboardPage() {
                   href={interviewDetails.meetingLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-all shadow-sm hover:shadow inline-flex items-center gap-2"
+                  className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded-xl transition-all shadow-sm hover:shadow inline-flex items-center gap-2"
                 >
                   <Video className="w-3.5 h-3.5" />
                   Join interview

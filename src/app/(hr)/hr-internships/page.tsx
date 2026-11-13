@@ -6,7 +6,7 @@ import {
   Layers, 
   Briefcase 
 } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 interface Internship {
@@ -28,7 +28,7 @@ export default function InternshipsPage() {
   useEffect(() => {
     const fetchInternships = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/internship/company", {
+        const response = await api.get("/internship/company", {
           withCredentials: true,
         });
 
@@ -73,7 +73,7 @@ export default function InternshipsPage() {
         
         <button 
           onClick={() => router.push("/hr-internships/create")}
-          className="px-3.5 py-1.5 bg-black hover:bg-slate-800 text-white rounded-full text-xs font-semibold transition-all cursor-pointer active:scale-95"
+          className="px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-full text-xs font-semibold transition-all cursor-pointer active:scale-95"
         >
           Create Internship
         </button>

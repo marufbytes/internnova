@@ -14,6 +14,7 @@ import {
   Building2
 } from 'lucide-react';
 import ApplyModal from '../ApplyModal';
+import api from '@/lib/api';
 
 export default function BrowseInternshipsPage() {
   const [internships, setInternships] = useState<any[]>([]);
@@ -34,34 +35,28 @@ export default function BrowseInternshipsPage() {
     const fetchData = async () => {
       try {
         // Fetch Internships List
-        const internshipsRes = await fetch('http://localhost:3000/internship', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
-        
-        if (internshipsRes.ok) {
-          const internshipsData = await internshipsRes.json();
+        try {
+          const internshipsRes = await api.get('/internship');
+          const internshipsData = internshipsRes.data;
           if (Array.isArray(internshipsData)) {
             setInternships(internshipsData);
           }
+        } catch {
+          // non-2xx responses were previously ignored; keep going to applications
         }
 
         // Fetch user's existing applications to mark "Applied" badges accurately
-        const applicationsRes = await fetch('http://localhost:3000/application/my', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
-
-        if (applicationsRes.ok) {
-          const applicationsData = await applicationsRes.json();
+        try {
+          const applicationsRes = await api.get('/application/my');
+          const applicationsData = applicationsRes.data;
           if (Array.isArray(applicationsData)) {
             const appliedIds = applicationsData
               .map((app: any) => app.internship?.id || app.internshipId)
               .filter(Boolean);
             setAppliedInternshipIds(appliedIds);
           }
+        } catch {
+          // non-2xx responses were previously ignored
         }
       } catch (err) {
         console.error('Failed to load internships or user applications:', err);
@@ -136,7 +131,7 @@ export default function BrowseInternshipsPage() {
             placeholder="Search by role, company, or skill"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-12 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-slate-300 text-slate-800 placeholder:text-slate-400 transition-all"
+            className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-12 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 text-slate-800 placeholder:text-slate-400 transition-all"
           />
         </div>
 
@@ -145,7 +140,7 @@ export default function BrowseInternshipsPage() {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
             >
               <option>All locations</option>
               <option>Dhaka</option>
@@ -159,7 +154,7 @@ export default function BrowseInternshipsPage() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
             >
               <option>All types</option>
               <option>Full-time</option>
@@ -172,7 +167,7 @@ export default function BrowseInternshipsPage() {
             <select
               value={selectedSort}
               onChange={(e) => setSelectedSort(e.target.value)}
-              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+              className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2.5 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
             >
               <option>Newest first</option>
               <option>Oldest first</option>
@@ -203,7 +198,7 @@ export default function BrowseInternshipsPage() {
                 className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
               >
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-center font-bold text-slate-800 text-base shrink-0 group-hover:bg-slate-950 group-hover:text-white group-hover:border-slate-950 transition-colors">
+                  <div className="w-12 h-12 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-center font-bold text-slate-800 text-base shrink-0 group-hover:bg-blue-800 group-hover:text-white group-hover:border-blue-700 transition-colors">
                     {item.company?.name?.charAt(0) || <Building2 className="w-5 h-5" />}
                   </div>
 
@@ -286,7 +281,7 @@ export default function BrowseInternshipsPage() {
                     ) : (
                       <button
                         onClick={() => setSelectedInternship(item)}
-                        className="flex-1 md:flex-none bg-slate-950 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-colors shadow-sm"
+                        className="flex-1 md:flex-none bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-colors shadow-sm"
                       >
                         Apply now
                       </button>

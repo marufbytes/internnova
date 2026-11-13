@@ -12,6 +12,7 @@ import {
   User,
   LogOut
 } from 'lucide-react';
+import api from '@/lib/api';
 
 interface StudentSidebarProps {
   isCollapsed: boolean;
@@ -23,15 +24,9 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
 
   useEffect(() => {
     // Sothik /users/me endpoint theke HTTP-only cookie-r maddhome data fetch kora
-    fetch('http://localhost:3000/users/me', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // NestJS HTTP-only cookie pathanor jonno khuboi zori
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch sidebar profile');
-        return res.json();
-      })
+    // withCredentials is enabled on the api instance (NestJS HTTP-only cookie pathanor jonno khuboi zori)
+    api.get('/users/me')
+      .then((res) => res.data)
       .then((data) => {
         if (data) {
           let fullName = '';
@@ -64,10 +59,7 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3000/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await api.post('/auth/logout');
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -99,7 +91,7 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
                   href={item.href}
                   title={isCollapsed ? item.name : undefined}
                   className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${isActive
-                      ? 'bg-slate-100 text-slate-900 font-bold'
+                      ? 'bg-blue-50 text-blue-800 font-bold'
                       : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
@@ -136,7 +128,7 @@ export default function StudentSidebar({ isCollapsed }: StudentSidebarProps) {
                   href={item.href}
                   title={isCollapsed ? item.name : undefined}
                   className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-colors ${isActive
-                      ? 'bg-slate-100 text-slate-900 font-bold'
+                      ? 'bg-blue-50 text-blue-800 font-bold'
                       : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >

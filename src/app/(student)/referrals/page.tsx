@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
 import { UserCheck, Building2, ShieldCheck } from 'lucide-react';
 
 const mockReferrals = [
@@ -12,11 +10,7 @@ const mockReferrals = [
 
 export default function StudentReferralsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header userName="Alex Johnson" userRole="Student" />
-      <div className="flex flex-1">
-        <Sidebar role="STUDENT" />
-        <main className="flex-1 p-5 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="space-y-6 max-w-7xl mx-auto w-full">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Alumni Referrals</h1>
             <p className="text-slate-500 text-sm mt-0.5">Track referral requests backed by verified alumni.</p>
@@ -46,8 +40,6 @@ export default function StudentReferralsPage() {
               </div>
             ))}
           </div>
-        </main>
-      </div>
     </div>
   );
 }

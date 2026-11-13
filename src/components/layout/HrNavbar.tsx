@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, FormEvent} from "react";
 import { Search, Bell, Menu, Clock } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { GraduationCap } from "lucide-react";
 
 interface NavbarProps {
   isOpen: boolean;
@@ -51,7 +51,7 @@ export default function HrNavbar({ isOpen, onMenuClick }: NavbarProps) {
   useEffect(() => {
     const fetchCompanyData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/company/my", {
+        const response = await api.get("/company/my", {
           withCredentials: true,
         });
 
@@ -123,22 +123,17 @@ export default function HrNavbar({ isOpen, onMenuClick }: NavbarProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* UniCareer Connect Logo & Title */}
+        {/* InternNova Logo & Title */}
         <div
           onClick={() => router.push("/hr-dashboard")}
           className="flex items-center gap-2.5 cursor-pointer"
         >
-          <Image
-            src="/unicareer-logo.png"
-            alt="UniCareer Connect Logo"
-            width={34}
-            height={34}
-            className="h-8 w-auto object-contain"
-            priority
-          />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-700 bg-transparent text-blue-700">
+            <GraduationCap className="h-5 w-5 text-blue-700" />
+          </div>
           <div className="flex flex-col leading-none">
-            <span className="font-extrabold text-base text-slate-900 tracking-tight">
-              UniCareer
+            <span className="font-extrabold text-base text-blue-800 tracking-tight">
+              InternNova
             </span>
             <span className="text-xs font-semibold text-slate-500 tracking-normal mt-0.5">
               Connect
@@ -242,7 +237,7 @@ export default function HrNavbar({ isOpen, onMenuClick }: NavbarProps) {
         <div className="flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-1.5 px-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
           <div className="relative">
             {/* Black Circle Avatar */}
-            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold uppercase shadow-inner">
+            <div className="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center text-xs font-bold uppercase shadow-inner">
               {profile.name.charAt(0)}
             </div>
             <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full absolute bottom-0 right-0 border-2 border-white" />

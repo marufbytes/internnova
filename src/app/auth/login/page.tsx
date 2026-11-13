@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GraduationCap, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,18 +29,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Essential for storing HTTP-only cookies from backend
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Invalid email or password.');
-      }
+      // withCredentials is enabled on the api instance (needed for HTTP-only cookies from backend)
+      const { data } = await api.post('/auth/login', { email, password });
 
       // Check exact user role returned from backend database response
       const userRole = data.user?.role;
@@ -46,15 +38,15 @@ export default function LoginPage() {
       if (userRole === 'HR') {
         router.push('/hr-dashboard');
       } else if (userRole === 'ALUMNI') {
-        router.push('/alumni/dashboard');
+        router.push('/alumni-dashboard');
       } else if (userRole === 'ADMIN') {
-        router.push('/admin/dashboard');
+        router.push('/admin-dashboard');
       } else {
         router.push('/dashboard'); // Student Dashboard default
       }
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Connection error. Please check backend connection.');
+      setError(err.response?.data?.message || (err.response ? 'Invalid email or password.' : err.message) || 'Connection error. Please check backend connection.');
     } finally {
       setLoading(false);
     }
@@ -68,24 +60,14 @@ export default function LoginPage() {
     setResetLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3000/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetEmail, newPassword }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to reset password. Please check your email.');
-      }
+      await api.post('/auth/reset-password', { email: resetEmail, newPassword });
 
       setResetMsg('Password updated successfully! You can now log in.');
       setNewPassword('');
       setResetEmail('');
       setTimeout(() => setShowForgot(false), 1800);
     } catch (err: any) {
-      setResetErr(err.message || 'Server error. Reset Password feature may not be configured in backend.');
+      setResetErr(err.response?.data?.message || (err.response ? 'Failed to reset password. Please check your email.' : err.message) || 'Server error. Reset Password feature may not be configured in backend.');
     } finally {
       setResetLoading(false);
     }
@@ -104,10 +86,10 @@ export default function LoginPage() {
       {/* Header */}
       <header className="w-full bg-white border-b border-slate-200/80 py-4 px-8 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-2xl bg-slate-950 flex items-center justify-center text-white shadow-sm">
-            <GraduationCap className="w-5 h-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-700 bg-transparent text-blue-700">
+            <GraduationCap className="h-5 w-5 text-blue-700" />
           </div>
-          <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-xl font-extrabold text-blue-800 tracking-tight">
             InternNova <span className="block text-[10px] font-semibold text-slate-400">Connect</span>
           </span>
         </Link>
@@ -152,7 +134,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="name@university.edu"
-                    className="w-full px-4 py-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all"
+                    className="w-full px-4 py-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all"
                   />
                 </div>
 
@@ -162,25 +144,30 @@ export default function LoginPage() {
                     <button 
                       type="button" 
                       onClick={() => { setShowForgot(true); setResetErr(null); setResetMsg(null); }}
-                      className="text-xs font-bold text-indigo-600 hover:underline cursor-pointer"
+                      className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
                     >
                       Forgot Password?
                     </button>
                   </div>
+                  <div className="relative">
                   <input 
-                    type="password" 
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••" 
-                    className="w-full px-4 py-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all"
+                    className="w-full px-4 py-3 pr-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all"
                   />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute inset-y-0 right-3 flex items-center text-slate-400 transition-colors hover:text-blue-700 focus:outline-none focus-visible:text-blue-700">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full py-3 bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -205,7 +192,7 @@ export default function LoginPage() {
           </div>
 
           {/* Graphical Right Side */}
-          <div className="hidden md:flex flex-col justify-center items-center p-12 bg-slate-950 text-white text-center relative overflow-hidden">
+          <div className="hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 text-white text-center relative overflow-hidden">
             <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg mb-6 border border-white/20">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
@@ -257,7 +244,7 @@ export default function LoginPage() {
                   onChange={(e) => setResetEmail(e.target.value)}
                   required
                   placeholder="name@example.com"
-                  className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all"
+                  className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all"
                 />
               </div>
               <div>
@@ -268,7 +255,7 @@ export default function LoginPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   placeholder="At least 8 characters"
-                  className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all"
+                  className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all"
                 />
               </div>
               <div className="flex gap-3 pt-2">
@@ -282,7 +269,7 @@ export default function LoginPage() {
                 <button 
                   type="submit" 
                   disabled={resetLoading}
-                  className="flex-1 py-2.5 bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {resetLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Set New Password'}
                 </button>

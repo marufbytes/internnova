@@ -12,6 +12,7 @@ import {
   CheckCircle2, 
   Loader2 
 } from 'lucide-react';
+import api from '@/lib/api';
 
 interface Resume {
   id: number;
@@ -45,26 +46,23 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
   useEffect(() => {
     const fetchResumes = async () => {
       try {
-        const profileRes = await fetch('http://localhost:3000/users/me', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
-        
         let currentUserId = null;
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          currentUserId = profileData.id;
+        try {
+          const profileRes = await api.get('/users/me');
+          currentUserId = profileRes.data.id;
+        } catch {
+          // ignore non-2xx profile responses
         }
 
-        const res = await fetch('http://localhost:3000/resume', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
+        let data: any = null;
+        try {
+          const res = await api.get('/resume');
+          data = res.data;
+        } catch {
+          data = null;
+        }
 
-        if (res.ok) {
-          const data = await res.json();
+        if (data !== null) {
           if (Array.isArray(data)) {
             const myResumes = data.filter((r: any) => {
               const rStudentId = r.studentId || r.student?.id;
@@ -76,7 +74,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
             if (validResumes.length > 0) {
               const formattedResumes = validResumes.map((r: any) => ({
                 ...r,
-                url: r.url || (r.fileUrl ? `http://localhost:3000/${r.fileUrl}` : '#')
+                url: r.url || (r.fileUrl ? `${api.defaults.baseURL}/${r.fileUrl}` : '#')
               }));
               setResumes(formattedResumes);
               setSelectedResumeId(String(formattedResumes[0].id));
@@ -122,21 +120,15 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
           : {}),
       };
 
-      const res = await fetch('http://localhost:3000/application', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || 'Failed to submit application.');
-        setLoading(false);
-        return;
+      try {
+        await api.post('/application', payload);
+      } catch (err: any) {
+        if (err.response) {
+          setError(err.response.data?.message || 'Failed to submit application.');
+          setLoading(false);
+          return;
+        }
+        throw err;
       }
 
       setSuccess(true);
@@ -205,7 +197,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                     href={selectedResume.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-indigo-600 hover:underline flex items-center gap-1 font-semibold"
+                    className="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-semibold"
                   >
                     Preview CV <ExternalLink className="w-3 h-3" />
                   </a>
@@ -220,7 +212,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                 <select
                   value={selectedResumeId}
                   onChange={(e) => setSelectedResumeId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
                   {resumes.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -292,7 +284,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                     value={alumniGoogleEmail}
                     onChange={(e) => setAlumniGoogleEmail(e.target.value)}
                     placeholder="alumni.email@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
 
@@ -324,7 +316,7 @@ export default function ApplyModal({ internship, onClose, onSuccess }: Props) {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading || resumes.length === 0}
-                className="flex-1 py-2.5 bg-slate-950 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2 shadow-sm"
+                className="flex-1 py-2.5 bg-blue-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2 shadow-sm"
               >
                 {loading ? (
                   <>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 import {
   LayoutDashboard,
   Building2,
@@ -36,7 +36,7 @@ export default function HrSidebar({
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get("http://localhost:3000/company/my", {
+        const { data } = await api.get("/company/my", {
           withCredentials: true,
         });
 
@@ -62,8 +62,8 @@ export default function HrSidebar({
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:3000/auth/logout",
+      await api.post(
+        "/auth/logout",
         {},
         { withCredentials: true }
       );
@@ -113,19 +113,19 @@ export default function HrSidebar({
                 href={item.href}
                 className={`group relative flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-[#EFEFEE] text-slate-900 font-bold shadow-2xs"
+                    ? "bg-blue-50 text-blue-800 font-bold shadow-2xs"
                     : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950 hover:translate-x-1"
                 }`}
                 title={!isOpen ? item.name : undefined}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 bg-slate-900 rounded-r-md" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 bg-blue-700 rounded-r-md" />
                 )}
 
                 <Icon
                   className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                     isActive
-                      ? "text-slate-900"
+                      ? "text-blue-800"
                       : "text-slate-500 group-hover:text-slate-950"
                   }`}
                 />

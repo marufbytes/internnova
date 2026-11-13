@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 interface Interview {
   id: number;
@@ -28,7 +29,6 @@ interface Notification {
 }
 
 const TABS = ['All', 'Upcoming', 'Completed', 'Cancelled'] as const;
-const API_BASE_URL = 'http://localhost:3000/interviews';
 
 export default function InterviewsContent() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('All');
@@ -53,17 +53,13 @@ export default function InterviewsContent() {
       if (statusFilter === 'Upcoming') filterParam = 'scheduled';
 
       const url = statusFilter === 'All' 
-        ? `${API_BASE_URL}/company` 
-        : `${API_BASE_URL}/company?status=${filterParam}`;
+        ? '/interviews/company' 
+        : `/interviews/company?status=${filterParam}`;
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      const result = await response.json();
+      const response = await api.get(url);
+      const result = response.data;
 
-      if (response.ok && Array.isArray(result)) {
+      if (Array.isArray(result)) {
         setInterviews(result);
       } else {
         setInterviews([]);
@@ -105,23 +101,17 @@ export default function InterviewsContent() {
         payload.scheduledDate = new Date(editDate).toISOString();
       }
 
-      const response = await fetch(`${API_BASE_URL}/${editingInterview.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
+      await api.patch(`/interviews/${editingInterview.id}`, payload);
 
-      if (response.ok) {
-        setEditingInterview(null);
-        showToast('Interview updated successfully!', 'success');
-        fetchInterviews(activeTab);
+      setEditingInterview(null);
+      showToast('Interview updated successfully!', 'success');
+      fetchInterviews(activeTab);
+    } catch (error: any) {
+      if (error.response) {
+        showToast(`Failed to update: ${error.response.data?.message || 'Server Error'}`, 'error');
       } else {
-        const errData = await response.json();
-        showToast(`Failed to update: ${errData.message || 'Server Error'}`, 'error');
+        showToast('Error connecting to backend server', 'error');
       }
-    } catch (error) {
-      showToast('Error connecting to backend server', 'error');
     } finally {
       setIsUpdating(false);
     }
@@ -129,29 +119,23 @@ export default function InterviewsContent() {
 
   const handleCancelClick = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status: 'cancelled' }),
-      });
+      await api.patch(`/interviews/${id}`, { status: 'cancelled' });
 
-      if (response.ok) {
-        showToast('Interview cancelled successfully', 'success');
-        fetchInterviews(activeTab);
+      showToast('Interview cancelled successfully', 'success');
+      fetchInterviews(activeTab);
+    } catch (error: any) {
+      if (error.response) {
+        showToast(`Failed to cancel: ${error.response.data?.message || 'Server Error'}`, 'error');
       } else {
-        const errData = await response.json();
-        showToast(`Failed to cancel: ${errData.message || 'Server Error'}`, 'error');
+        showToast('Error connecting to backend server', 'error');
       }
-    } catch (error) {
-      showToast('Error connecting to backend server', 'error');
     }
   };
 
   const renderStatusBadge = (status: string) => {
     if (status === 'scheduled') {
       return (
-        <span className="px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-100 inline-block">
+        <span className="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 inline-block">
           Interview
         </span>
       );
@@ -338,7 +322,7 @@ export default function InterviewsContent() {
                   type="datetime-local"
                   value={editDate}
                   onChange={(e) => setEditDate(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 />
               </div>
 
@@ -351,7 +335,7 @@ export default function InterviewsContent() {
                   value={editLink}
                   onChange={(e) => setEditLink(e.target.value)}
                   placeholder="meet.google.com/..."
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 />
               </div>
             </div>
@@ -366,7 +350,7 @@ export default function InterviewsContent() {
               <button
                 onClick={handleSaveEdit}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+                className="px-4 py-2 bg-blue-700 text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition disabled:opacity-50"
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
               </button>

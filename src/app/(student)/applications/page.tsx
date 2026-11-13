@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -14,15 +15,8 @@ export default function ApplicationsPage() {
 
   // Fetch Real Data from Backend using HTTP-only Cookie
   useEffect(() => {
-    fetch('http://localhost:3000/application/my', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // HTTP-only cookie backend-e pathanor jonno
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch applications');
-        return res.json();
-      })
+    api.get('/application/my')
+      .then((res) => res.data)
       .then((data) => {
         if (Array.isArray(data)) {
           setApplications(data);
@@ -43,7 +37,7 @@ export default function ApplicationsPage() {
       case 'REVIEWED':
         return 'bg-blue-50 text-blue-600 border-blue-100';
       case 'INTERVIEW':
-        return 'bg-indigo-50 text-indigo-600 border-indigo-100';
+        return 'bg-blue-50 text-blue-600 border-blue-100';
       case 'ACCEPTED':
         return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       case 'REJECTED':
@@ -121,7 +115,7 @@ export default function ApplicationsPage() {
             placeholder="Search applications"
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-12 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-300 text-slate-800 placeholder:text-slate-400 transition-all"
+            className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-12 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 text-slate-800 placeholder:text-slate-400 transition-all"
           />
         </div>
 
@@ -130,7 +124,7 @@ export default function ApplicationsPage() {
           <select
             value={selectedStatus}
             onChange={handleStatusChange}
-            className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+            className="w-full appearance-none bg-slate-50 border border-slate-200/80 px-3 py-2 pr-8 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
           >
             <option>All statuses</option>
             <option value="PENDING">Pending</option>
@@ -163,7 +157,7 @@ export default function ApplicationsPage() {
                     {/* Internship Info & Logo */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-center font-bold text-slate-800 text-sm shrink-0 group-hover:bg-slate-950 group-hover:text-white group-hover:border-slate-950 transition-colors">
+                        <div className="w-9 h-9 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-center font-bold text-slate-800 text-sm shrink-0 group-hover:bg-blue-800 group-hover:text-white group-hover:border-blue-700 transition-colors">
                           {app.internship?.company?.name?.charAt(0) || 'I'}
                         </div>
                         <div>
@@ -238,7 +232,7 @@ export default function ApplicationsPage() {
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-xl font-bold transition-colors ${
                   currentPage === page
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-blue-800 text-white'
                     : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
                 }`}
               >

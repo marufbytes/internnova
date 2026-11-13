@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import { GraduationCap, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import api from '@/lib/api';
 
 const regSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -17,6 +18,7 @@ const regSchema = z.object({
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     firstName: "", 
     lastName: "", 
@@ -45,17 +47,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch('http://localhost:3000/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Registration failed.');
-      }
+      await api.post('/auth/register', form);
 
       setStatus({ loading: false, msg: "Account created successfully! Redirecting to login..." });
       
@@ -64,7 +56,7 @@ export default function RegisterPage() {
       }, 1500);
 
     } catch (err: any) {
-      setStatus({ loading: false, msg: err.message || 'Server connection error.' });
+      setStatus({ loading: false, msg: err.response?.data?.message || (err.response ? 'Registration failed.' : err.message) || 'Server connection error.' });
     }
   };
 
@@ -74,10 +66,10 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="w-full bg-white border-b border-slate-200/80 py-4 px-8 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-2xl bg-slate-950 flex items-center justify-center text-white shadow-sm">
-            <GraduationCap className="w-5 h-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-700 bg-transparent text-blue-700">
+            <GraduationCap className="h-5 w-5 text-blue-700" />
           </div>
-          <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-xl font-extrabold text-blue-800 tracking-tight">
             InternNova <span className="block text-[10px] font-semibold text-slate-400">Connect</span>
           </span>
         </Link>
@@ -121,7 +113,7 @@ export default function RegisterPage() {
                       value={form.firstName} 
                       onChange={e => set("firstName", e.target.value)} 
                       placeholder="First Name" 
-                      className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all" 
+                      className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all" 
                     />
                     {errors.firstName && <p className="text-rose-500 text-[11px] mt-1 font-medium">{errors.firstName}</p>}
                   </div>
@@ -132,7 +124,7 @@ export default function RegisterPage() {
                       value={form.lastName} 
                       onChange={e => set("lastName", e.target.value)} 
                       placeholder="Last Name" 
-                      className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all" 
+                      className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all" 
                     />
                     {errors.lastName && <p className="text-rose-500 text-[11px] mt-1 font-medium">{errors.lastName}</p>}
                   </div>
@@ -143,7 +135,7 @@ export default function RegisterPage() {
                   <select 
                     value={form.role} 
                     onChange={e => set("role", e.target.value)} 
-                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all cursor-pointer"
+                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all cursor-pointer"
                   >
                     <option value="STUDENT">Student</option>
                     <option value="ALUMNI">Alumni</option>
@@ -159,7 +151,7 @@ export default function RegisterPage() {
                     value={form.email} 
                     onChange={e => set("email", e.target.value)} 
                     placeholder="name@example.com" 
-                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all" 
+                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all" 
                   />
                   {errors.email && <p className="text-rose-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
                 </div>
@@ -171,27 +163,32 @@ export default function RegisterPage() {
                     value={form.phone} 
                     onChange={e => set("phone", e.target.value)} 
                     placeholder="+8801XXXXXXXXX" 
-                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all" 
+                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all" 
                   />
                   {errors.phone && <p className="text-rose-500 text-[11px] mt-1 font-medium">{errors.phone}</p>}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+                  <div className="relative">
                   <input 
-                    type="password" 
+                    type={showPassword ? 'text' : 'password'}
                     value={form.password} 
                     onChange={e => set("password", e.target.value)} 
                     placeholder="At least 8 chars with letter & number" 
-                    className="w-full px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:bg-white text-slate-800 font-medium transition-all" 
+                    className="w-full px-4 py-2.5 pr-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-slate-800 font-medium transition-all" 
                   />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute inset-y-0 right-3 flex items-center text-slate-400 transition-colors hover:text-blue-700 focus:outline-none focus-visible:text-blue-700">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.password && <p className="text-rose-500 text-[11px] mt-1 font-medium">{errors.password}</p>}
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={status.loading} 
-                  className="w-full py-3 bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2"
                 >
                   {status.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign Up"}
                 </button>
@@ -204,7 +201,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Right Side: Visual Hero */}
-          <div className="hidden md:flex flex-col justify-center items-center p-12 bg-slate-950 text-white text-center relative overflow-hidden">
+          <div className="hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 text-white text-center relative overflow-hidden">
             <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg mb-6 border border-white/20">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>

@@ -12,6 +12,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import ApplyModal from '../../ApplyModal';
+import api from '@/lib/api';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,26 +38,23 @@ export default function InternshipDetailsPage({ params }: PageProps) {
       ?.split('=')[1];
 
     // 1. Fetch Internship Details from Backend DB
-    fetch(`http://localhost:3000/internship/${internshipId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Internship not found.');
-        return res.json();
-      })
+    api.get(`/internship/${internshipId}`)
+      .then((res) => res.data)
       .then((data) => {
         setInternship(data);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Something went wrong.');
+        setError(err.response?.data?.message || (err.response ? 'Internship not found.' : err.message) || 'Something went wrong.');
         setLoading(false);
       });
 
     // 2. Check if student already applied
     if (token) {
-      fetch('http://localhost:3000/application/my', {
+      api.get('/application/my', {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((res) => res.json())
+        .then((res) => res.data)
         .then((data) => {
           if (Array.isArray(data)) {
             const hasApplied = data.some((app) => app.internship?.id === Number(internshipId));
@@ -114,7 +112,7 @@ export default function InternshipDetailsPage({ params }: PageProps) {
       {/* Hero Header Card */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-slate-950 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shrink-0 shadow-sm">
+          <div className="w-16 h-16 bg-blue-800 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shrink-0 shadow-sm">
             {company?.name?.charAt(0) || <Building2 className="w-7 h-7" />}
           </div>
 
@@ -153,7 +151,7 @@ export default function InternshipDetailsPage({ params }: PageProps) {
           ) : (
             <button
               onClick={() => setShowApplyModal(true)}
-              className="bg-slate-950 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl text-xs font-semibold transition-colors shadow-sm"
+              className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-2xl text-xs font-semibold transition-colors shadow-sm"
             >
               Apply now
             </button>

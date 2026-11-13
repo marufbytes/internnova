@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MapPin, Mail, Phone, Edit3, CheckCircle2, XCircle, X } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 interface Company {
@@ -39,7 +39,7 @@ export default function MyCompanyPage() {
 
   const fetchCompanyProfile = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:3000/company/my", {
+      const response = await api.get("/company/my", {
         withCredentials: true,
       });
 
@@ -121,7 +121,7 @@ export default function MyCompanyPage() {
     setIsSubmitting(true);
 
     try {
-      await axios.patch(`http://localhost:3000/company/${company.id}`, formData, {
+      await api.patch(`/company/${company.id}`, formData, {
         withCredentials: true,
       });
 
@@ -154,7 +154,7 @@ export default function MyCompanyPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-100">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0">
+            <div className="w-12 h-12 bg-blue-800 text-white rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0">
               {company?.name ? company.name.charAt(0).toUpperCase() : "C"}
             </div>
             <div>
@@ -332,7 +332,7 @@ export default function MyCompanyPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 bg-black text-white rounded-xl text-xs font-semibold disabled:opacity-50 cursor-pointer"
+                className="px-6 py-2.5 bg-blue-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </button>

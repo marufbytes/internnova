@@ -14,6 +14,7 @@ import {
   Loader2,
   Building2 
 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function InterviewsPage() {
   const [interviews, setInterviews] = useState<any[]>([]);
@@ -22,15 +23,8 @@ export default function InterviewsPage() {
 
   // Fetch Real Student Interviews from Backend using HTTP-only cookie
   useEffect(() => {
-    fetch('http://localhost:3000/interviews/student/my', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // HTTP-only cookie backend-e pathanor jonno
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch interviews');
-        return res.json();
-      })
+    api.get('/interviews/student/my')
+      .then((res) => res.data)
       .then((data) => {
         if (Array.isArray(data)) {
           setInterviews(data);
@@ -114,7 +108,7 @@ export default function InterviewsPage() {
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
               activeTab === tab
-                ? 'bg-slate-950 text-white shadow-sm'
+                ? 'bg-blue-800 text-white shadow-sm'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -141,7 +135,7 @@ export default function InterviewsPage() {
               >
                 {/* Left Column: Logo & Details */}
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-center font-bold text-slate-800 text-base shrink-0 group-hover:bg-slate-950 group-hover:text-white group-hover:border-slate-950 transition-colors">
+                  <div className="w-12 h-12 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-center font-bold text-slate-800 text-base shrink-0 group-hover:bg-blue-800 group-hover:text-white group-hover:border-blue-700 transition-colors">
                     {companyInitial || <Building2 className="w-5 h-5" />}
                   </div>
 
@@ -192,7 +186,7 @@ export default function InterviewsPage() {
                         href={item.meetingLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 sm:flex-none text-center bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm"
+                        className="flex-1 sm:flex-none text-center bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm"
                       >
                         Join interview
                       </a>

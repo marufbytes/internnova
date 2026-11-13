@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import ApplicationsTable from '../ApplicationTable';
+import api from '@/lib/api';
 
 
 
@@ -39,17 +40,15 @@ export default async function ApplicationsPage({searchParams}: PageProps)
   // Get cookies
   const cookieStore = await cookies();
 
-  const response = await fetch(
-    `http://localhost:3000/application/company?${query.toString()}`,
-    {
+  let data: any;
+  try {
+    const response = await api.get(`/application/company?${query.toString()}`, {
       headers: {
         Cookie: cookieStore.toString(),
       },
-      cache: 'no-store',
-    }
-  );
-
-  if (!response.ok) {
+    });
+    data = response.data;
+  } catch {
     return (
       <div className="p-3 text-rose-600 bg-rose-50 rounded-lg text-xs font-medium text-center border border-rose-200">
         Failed to load applications.
@@ -57,8 +56,7 @@ export default async function ApplicationsPage({searchParams}: PageProps)
     );
   }
 
-  // Get Response Data
-  const data = await response.json();
+  // Response data is available in `data`
 
   return (
     <div className="p-3 space-y-3 font-sans">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 import Link from "next/link";
 import { ArrowLeft, Edit3, Power, PowerOff, X } from "lucide-react";
 
@@ -52,7 +52,7 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
 
   const fetchInternship = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/internship/${id}`, {
+      const res = await api.get(`/internship/${id}`, {
         withCredentials: true,
       });
       setInternship(res.data);
@@ -82,8 +82,8 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
     setIsSubmitting(true);
 
     try {
-      await axios.patch(
-        `http://localhost:3000/internship/${id}`,
+      await api.patch(
+        `/internship/${id}`,
         formData,
         {
           withCredentials: true,
@@ -106,8 +106,8 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
     if (!internship) return;
 
     try {
-      const res = await axios.patch(
-        `http://localhost:3000/internship/${id}/toggle-status`,
+      const res = await api.patch(
+        `/internship/${id}/toggle-status`,
         {},
         {
           withCredentials: true,
@@ -183,7 +183,7 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
         <div className="flex items-center gap-2.5 self-end sm:self-center">
           <button
             onClick={handleOpenEditModal}
-            className="flex items-center gap-2 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             <Edit3 className="w-4 h-4" />
             Edit
@@ -191,7 +191,7 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
 
           <button
             onClick={handleToggleStatus}
-            className="flex items-center gap-2 px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             {internship.isActive ? (
               <>
@@ -281,9 +281,9 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
                 <span className="block text-xs font-bold text-sky-500 uppercase tracking-wider mt-0.5">Reviewed</span>
               </div>
 
-              <div className="bg-indigo-50/60 border border-indigo-100/60 p-3.5 rounded-2xl text-center">
-                <span className="block text-lg font-extrabold text-indigo-600">{stats.interview ?? 0}</span>
-                <span className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mt-0.5">Interview</span>
+              <div className="bg-blue-50/60 border border-blue-100/60 p-3.5 rounded-2xl text-center">
+                <span className="block text-lg font-extrabold text-blue-600">{stats.interview ?? 0}</span>
+                <span className="block text-xs font-bold text-blue-500 uppercase tracking-wider mt-0.5">Interview</span>
               </div>
 
               <div className="bg-emerald-50/60 border border-emerald-100/60 p-3.5 rounded-2xl text-center">
@@ -370,7 +370,7 @@ export default function InternshipDetailsPage({ params }: { params: Promise<{ id
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-black hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs shadow-black/10 transition-all cursor-pointer active:scale-95"
+                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs shadow-black/10 transition-all cursor-pointer active:scale-95"
                 >
                   {isSubmitting ? "Saving..." : "Save Changes"}
                 </button>

@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { User, Lock } from "lucide-react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-axios.defaults.withCredentials = true;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -25,8 +23,8 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/users/me`)
+    api
+      .get(`/users/me`)
       .then((res) => {
         const u = res.data;
         setProfile({
@@ -54,7 +52,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setSavingProfile(true);
     try {
-      await axios.patch(`${API_BASE_URL}/users/profile`, profile);
+      await api.patch(`/users/profile`, profile);
       showToast("Profile updated successfully!", "success");
     } catch (err: any) {
       showToast(err.response?.data?.message || "Failed to update profile");
@@ -71,7 +69,7 @@ export default function SettingsPage() {
 
     setSavingPassword(true);
     try {
-      await axios.patch(`${API_BASE_URL}/users/change-password`, {
+      await api.patch(`/users/change-password`, {
         currentPassword: password.currentPassword,
         newPassword: password.newPassword,
       });
@@ -167,7 +165,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="px-6 py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-semibold transition-colors duration-200 disabled:opacity-50"
+                className="px-6 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-semibold transition-colors duration-200 disabled:opacity-50"
               >
                 {savingProfile ? "Saving..." : "Save Profile"}
               </button>
@@ -223,7 +221,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="px-6 py-2.5 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-semibold transition-colors duration-200 disabled:opacity-50"
+                className="px-6 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-semibold transition-colors duration-200 disabled:opacity-50"
               >
                 {savingPassword ? "Updating..." : "Update Password"}
               </button>
